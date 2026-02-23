@@ -17,16 +17,9 @@ export async function GET(request: Request) {
     const offset = parseInt(url.searchParams.get('offset') || '0');
     const debug = url.searchParams.get('debug') === 'true';
 
-    console.log(`🔍 Buscando mensajes para la conversación: conversation_id=${conversationId || 'N/A'}, site_id=${siteId || 'N/A'}`);
+    console.log(`🔍 Buscando mensajes: conversation_id=${conversationId || 'N/A'}, site_id=${siteId || 'N/A'}`);
 
-    // Validate input parameters
-    if (!conversationId) {
-      return NextResponse.json(
-        { success: false, error: { code: 'INVALID_REQUEST', message: 'conversation_id is required' } },
-        { status: 400 }
-      );
-    }
-
+    // site_id is always required
     if (!siteId) {
       return NextResponse.json(
         { success: false, error: { code: 'INVALID_REQUEST', message: 'site_id is required' } },
@@ -34,17 +27,54 @@ export async function GET(request: Request) {
       );
     }
 
-    // Validate UUID format for provided parameters
-    if (!isValidUUID(conversationId)) {
+    if (!isValidUUID(siteId)) {
       return NextResponse.json(
-        { success: false, error: { code: 'INVALID_REQUEST', message: 'conversation_id must be a valid UUID' } },
+        { success: false, error: { code: 'INVALID_REQUEST', message: 'site_id must be a valid UUID' } },
         { status: 400 }
       );
     }
 
-    if (!isValidUUID(siteId)) {
+    // When conversation_id is omitted, return site-wide recent messages (no synthetic task messages)
+    if (!conversationId) {
+      const { data: siteMessages, error: siteMsgError, count: siteCount } = await supabaseAdmin
+        .from('messages')
+        .select('*, conversations!inner(site_id)', { count: 'exact' })
+        .eq('conversations.site_id', siteId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (siteMsgError) {
+        console.error('Error querying site-wide messages:', siteMsgError);
+        return NextResponse.json(
+          { success: false, error: { code: 'DATABASE_ERROR', message: 'Error querying messages', details: debug ? siteMsgError : undefined } },
+          { status: 500 }
+        );
+      }
+
+      // Strip the joined conversations field; keep all message fields including conversation_id
+      const messagesOnly = (siteMessages ?? []).map((m: any) => {
+        const { conversations: _c, ...rest } = m;
+        return rest; // includes id, conversation_id, content, role, created_at, etc.
+      });
+      const total = siteCount ?? 0;
+      const pages = Math.ceil(total / limit);
+
+      console.log(`✅ Site-wide: ${messagesOnly.length} messages for site ${siteId}`);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          messages: messagesOnly,
+          pagination: { total, page: Math.floor(offset / limit) + 1, limit, pages }
+        },
+        debug: debug ? { query_params: { siteId }, mode: 'site_wide' } : undefined
+      });
+    }
+
+    // Validate conversation_id when provided
+    if (!isValidUUID(conversationId)) {
       return NextResponse.json(
-        { success: false, error: { code: 'INVALID_REQUEST', message: 'site_id must be a valid UUID' } },
+        { success: false, error: { code: 'INVALID_REQUEST', message: 'conversation_id must be a valid UUID' } },
         { status: 400 }
       );
     }

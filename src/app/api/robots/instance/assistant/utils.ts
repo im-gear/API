@@ -36,6 +36,8 @@ import { workflowsTool } from '@/app/api/agents/tools/workflows/assistantProtoco
 import { copywritingTool } from '@/app/api/agents/tools/copywriting/assistantProtocol';
 import { sendWhatsAppTool } from '@/app/api/agents/tools/sendWhatsApp/assistantProtocol';
 import { whatsappTemplateTool } from '@/app/api/agents/tools/whatsappTemplate/assistantProtocol';
+import { conversationsTool } from '@/app/api/agents/tools/conversations/assistantProtocol';
+import { messagesTool } from '@/app/api/agents/tools/messages/assistantProtocol';
 
 /**
  * Fetch relevant memories for assistant context (site_id, user_id, instance_id)
@@ -204,5 +206,7 @@ export const getAssistantTools = (
     copywritingTool(siteId, userId),
     sendWhatsAppTool(siteId),
     whatsappTemplateTool(siteId),
+    conversationsTool(siteId, userId),
+    messagesTool(siteId),
   ];
 };
