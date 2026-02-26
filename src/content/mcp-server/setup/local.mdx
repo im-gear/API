@@ -1,0 +1,49 @@
+# Install Locally
+
+If you prefer to run the MCP server on your own machine, follow these steps.
+
+## Prerequisites
+
+First, clone the repository:
+
+```bash
+git clone https://github.com/Makinari/API.git
+cd API
+```
+
+Ensure you have the project dependencies installed.
+
+```bash
+npm install
+```
+
+## Configuration
+
+The MCP server requires the following environment variables:
+
+- `MCP_SITE_ID` (required): The ID of your site.
+- `MCP_USER_ID` (optional): The ID of the user.
+- `MCP_INSTANCE_ID` (optional): The ID of the instance (default: 'default').
+- `API_URL` (optional): The URL of the API server. Defaults to `http://localhost:3000`.
+  - You can use the Makinari API (if you have access) or run the API locally from this repository.
+  - If running locally, ensure the API server is started (e.g., `npm run dev`) and reachable at this URL.
+- `REST_API_KEY` (optional): Required if using a remote API (e.g., Makinari API).
+- `SERVICE_API_KEY` (optional): Required if running the API locally. This should be set in the `.env` file of the API project.
+
+## Running the Server
+
+### Stdio Mode
+
+To run the MCP server in stdio mode (for local development or Cursor integration):
+
+```bash
+npm run mcp
+```
+
+### HTTP Mode
+
+The MCP server is also exposed via an HTTP endpoint for remote clients.
+
+`POST /api/mcp`
+
+This endpoint handles JSON-RPC requests over HTTP.
