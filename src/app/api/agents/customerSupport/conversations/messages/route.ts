@@ -43,6 +43,9 @@ export async function getMessagesCore(params: GetMessagesParams): Promise<{
   if (!isValidUUID(siteId)) throw new Error('INVALID_REQUEST: site_id must be a valid UUID');
   if (leadId && !isValidUUID(leadId)) throw new Error('INVALID_REQUEST: lead_id must be a valid UUID');
 
+  // Clamp limit to avoid runaway queries and ensure at least 1
+  const safeLimit = Math.min(Math.max(limit, 1), 100);
+
   // Site-wide: no conversation_id
   if (!conversationId) {
     let siteQuery = supabaseAdmin
@@ -50,7 +53,7 @@ export async function getMessagesCore(params: GetMessagesParams): Promise<{
       .select('*, conversations!inner(site_id)', { count: 'exact' })
       .eq('conversations.site_id', siteId)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + safeLimit - 1);
     if (leadId) siteQuery = siteQuery.eq('lead_id', leadId);
     if (roleFilter) siteQuery = siteQuery.eq('role', roleFilter);
     if (interactionFilter) siteQuery = siteQuery.eq('interaction', interactionFilter);
@@ -58,20 +61,25 @@ export async function getMessagesCore(params: GetMessagesParams): Promise<{
 
     const { data: siteMessages, error: siteMsgError, count: siteCount } = await siteQuery;
 
-    if (siteMsgError) throw new Error(`DATABASE_ERROR: ${siteMsgError.message}`);
+    if (siteMsgError) {
+      const detail = typeof siteMsgError.message === 'string'
+        ? siteMsgError.message
+        : JSON.stringify(siteMsgError);
+      throw new Error(`DATABASE_ERROR: ${detail}`);
+    }
 
     const messagesOnly = (siteMessages ?? []).map((m: any) => {
       const { conversations: _c, ...rest } = m;
       return rest;
     });
     const total = siteCount ?? 0;
-    const pages = Math.ceil(total / limit);
+    const pages = Math.ceil(total / safeLimit);
 
     return {
       success: true,
       data: {
         messages: messagesOnly,
-        pagination: { total, page: Math.floor(offset / limit) + 1, limit, pages }
+        pagination: { total, page: Math.floor(offset / safeLimit) + 1, limit: safeLimit, pages }
       }
     };
   }
@@ -85,7 +93,12 @@ export async function getMessagesCore(params: GetMessagesParams): Promise<{
     .eq('site_id', siteId)
     .single();
 
-  if (conversationError) throw new Error(`DATABASE_ERROR: ${conversationError.message}`);
+  if (conversationError) {
+    const detail = typeof conversationError.message === 'string'
+      ? conversationError.message
+      : JSON.stringify(conversationError);
+    throw new Error(`DATABASE_ERROR: ${detail}`);
+  }
   if (!conversation) throw new Error('NOT_FOUND: Conversation not found or does not belong to the specified site');
 
   let convMsgQuery = supabaseAdmin
@@ -93,7 +106,7 @@ export async function getMessagesCore(params: GetMessagesParams): Promise<{
     .select('*', { count: 'exact' })
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true })
-    .range(offset, offset + limit - 1);
+    .range(offset, offset + safeLimit - 1);
   if (leadId) convMsgQuery = convMsgQuery.eq('lead_id', leadId);
   if (roleFilter) convMsgQuery = convMsgQuery.eq('role', roleFilter);
   if (interactionFilter) convMsgQuery = convMsgQuery.eq('interaction', interactionFilter);
@@ -101,7 +114,12 @@ export async function getMessagesCore(params: GetMessagesParams): Promise<{
 
   const { data: messages, error: messagesError, count } = await convMsgQuery;
 
-  if (messagesError) throw new Error(`DATABASE_ERROR: ${messagesError.message}`);
+  if (messagesError) {
+    const detail = typeof messagesError.message === 'string'
+      ? messagesError.message
+      : JSON.stringify(messagesError);
+    throw new Error(`DATABASE_ERROR: ${detail}`);
+  }
 
   let syntheticMessages: any[] = [];
   try {
@@ -172,13 +190,13 @@ export async function getMessagesCore(params: GetMessagesParams): Promise<{
     .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
   const total = count ?? 0;
-  const pages = Math.ceil(total / limit);
+  const pages = Math.ceil(total / safeLimit);
 
   return {
     success: true,
     data: {
       messages: mergedMessages,
-      pagination: { total, page: Math.floor(offset / limit) + 1, limit, pages }
+      pagination: { total, page: Math.floor(offset / safeLimit) + 1, limit: safeLimit, pages }
     }
   };
 }
