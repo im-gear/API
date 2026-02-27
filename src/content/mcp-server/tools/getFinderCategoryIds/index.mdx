@@ -1,0 +1,16 @@
+---
+title: Get Finder Category IDs
+description: Get category IDs from Finder autocomplete.
+---
+
+# Get Finder Category IDs
+
+Get category IDs from Finder autocomplete. Categories: industries, organizations, organization_keywords, locations, person_skills, web_technologies. Returns results with id and text. IMPORTANT: Use this tool BEFORE analyzeICPTotalCount or createIcpMining when the user mentions industries, locations, job skills, etc. - those tools require IDs, not free text. Search with q to find the correct ID.
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| category | string | Category to search: industries, organizations, organization_keywords, locations, person_skills, web_technologies. Enum: industries, organizations, organization_keywords, locations, person_skills, web_technologies |
+| q | string | Search term (e.g. "technology", "New York", "Marketing Manager") to find matching IDs |
+| page | number | Page number for pagination (default 1) |

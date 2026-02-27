@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { CommandFactory, ProcessorInitializer } from '@/lib/agentbase';
 import { supabaseAdmin } from '@/lib/database/supabase-client';
 import { v4 as uuidv4 } from 'uuid';
+import { reportTool } from '@/app/api/agents/tools/report/assistantProtocol';
 
 // Configurar timeout máximo a 5 minutos (300 segundos)
 // Máximo para plan Pro de Vercel
@@ -400,6 +401,18 @@ export async function POST(request: Request) {
       ? analysisContext.substring(0, maxContextLength) + '... [context truncated due to size]'
       : analysisContext.trim();
     
+    // Prepare tools and sanitize them for serialization
+    const rawTools = [
+      reportTool(site_id, dataAnalystAgent.userId ?? ''),
+    ];
+    
+    const sanitizedTools = rawTools.map(tool => {
+      // Create a shallow copy and remove function properties
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { handler, execute, ...rest } = tool;
+      return rest;
+    });
+
     // Validar que los objetos son serializables antes de crear el comando
     console.log('🔍 Validando estructura del comando antes de crear...');
     
@@ -410,6 +423,7 @@ export async function POST(request: Request) {
         targets: [{
           research_analysis: researchAnalysisStructure
         }],
+        tools: sanitizedTools,
         supervisor: [{
           agent_role: 'research_manager',
           status: 'not_initialized'
@@ -432,7 +446,7 @@ export async function POST(request: Request) {
 
     const commandData = CommandFactory.createCommand({
       task: 'analyze the research data',
-      userId: dataAnalystAgent.userId,
+      userId: dataAnalystAgent.userId ?? '',
       description: `Analyze consolidated research data from ${consolidatedData ? consolidatedData.total_searches : 0} searches${data ? ' and additional data' : ''}`,
       agentId: dataAnalystAgent.agentId,
       site_id: site_id,
@@ -442,8 +456,8 @@ export async function POST(request: Request) {
           research_analysis: researchAnalysisStructure
         }
       ],
-      tools: [],
-              supervisor: [
+      tools: sanitizedTools,
+      supervisor: [
         {
           agent_role: 'research_manager',
           status: 'not_initialized'

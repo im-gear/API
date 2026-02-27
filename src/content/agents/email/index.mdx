@@ -1,0 +1,157 @@
+# Email Agent
+
+The Email agent handles email communication, analysis, synchronization, and automated replies.
+
+> **Note:** For this agent to function correctly, an email account must be configured and connected. Please ensure your email provider settings (IMAP/SMTP) are properly set up in the integration settings.
+
+## Endpoints
+
+### Email Analysis
+
+Analyzes incoming emails for context, sentiment, and required actions.
+
+`POST /api/agents/email`
+
+**Request Body**
+
+```json
+{
+  "site_id": "123e4567-e89b-12d3-a456-426614174000",
+  "limit": 5
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `site_id` | `string` | Yes | The UUID of the site. |
+| `limit` | `number` | No | Max emails to analyze (default: 5). |
+| `lead_id` | `string` | No | Filter by lead UUID. |
+| `agentId` | `string` | No | The UUID of the agent. |
+| `user_id` | `string` | No | The UUID of the user. |
+| `analysis_type` | `string` | No | Type of analysis to perform. |
+| `since_date` | `string` | No | ISO date string to filter emails. |
+
+**Response**
+
+Returns the analysis results and processed emails.
+
+---
+
+### Email Check
+
+Validates email credentials and connection settings.
+
+`POST /api/agents/email/check`
+
+**Request Body**
+
+```json
+{
+  "site_id": "123e4567-e89b-12d3-a456-426614174000",
+  "use_saved_credentials": true
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `site_id` | `string` | No | The UUID of the site (if using saved credentials). |
+| `email` | `string` | No | Email address (if manual). |
+| `password` | `string` | No | Password (if manual). |
+| `use_saved_credentials` | `boolean` | No | Whether to use saved site credentials (default: true). |
+| `incoming_server` | `string` | No | IMAP server host. |
+| `incoming_port` | `number` | No | IMAP server port. |
+| `outgoing_server` | `string` | No | SMTP server host. |
+| `outgoing_port` | `number` | No | SMTP server port. |
+| `tls` | `boolean` | No | Use TLS (default: true). |
+| `skip_smtp` | `boolean` | No | Skip SMTP check (default: false). |
+
+**Response**
+
+Returns the connection status for IMAP and SMTP.
+
+---
+
+### Email Reply Operations
+
+Endpoints for generating and sending replies based on different contexts.
+
+#### General Reply (Agent)
+`POST /api/agents/email/reply`
+Handles replies for the main agent address.
+
+#### Alias Reply
+`POST /api/agents/email/aliasReply`
+Handles replies for configured email aliases.
+
+#### Lead Reply
+`POST /api/agents/email/leadsReply`
+Handles replies specifically for identified leads.
+
+**Common Request Body for Reply Endpoints**
+
+```json
+{
+  "site_id": "123e4567-e89b-12d3-a456-426614174000",
+  "limit": 10
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `site_id` | `string` | Yes | The UUID of the site. |
+| `limit` | `number` | No | Max emails to process (default: 10). |
+
+**Response**
+
+Returns details of the processed replies and emails sent.
+
+---
+
+### Delivery Status
+
+Checks and processes bounce messages and delivery failures.
+
+`POST /api/agents/email/deliveryStatus`
+
+**Request Body**
+
+```json
+{
+  "site_id": "123e4567-e89b-12d3-a456-426614174000",
+  "limit": 20
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `site_id` | `string` | Yes | The UUID of the site. |
+| `limit` | `number` | No | Max emails to check (default: 20). |
+| `since_date` | `string` | No | ISO date string to filter emails. |
+
+**Response**
+
+Returns statistics on processed bounces and triggered invalidation workflows.
+
+---
+
+### Email Sync
+
+Synchronizes email accounts and messages.
+
+`POST /api/agents/email/sync`
+
+**Request Body**
+
+```json
+{
+  "site_id": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `site_id` | `string` | Yes | The UUID of the site. |
+
+**Response**
+
+Returns the synchronization status.

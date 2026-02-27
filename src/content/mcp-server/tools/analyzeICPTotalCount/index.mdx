@@ -1,0 +1,25 @@
+---
+title: Analyze ICP Total Count
+description: Analyze the total count of ICP targets from Finder.
+---
+
+# Analyze ICP Total Count
+
+Analyze the total count of ICP targets from Finder. Pass filters using finder field names: person_industries, person_locations, person_skills (number[] IDs from getFinderCategoryIds), organization_domains (string[]), organization_industries, organization_locations (number[] IDs), role_title, role_description. Use getFinderCategoryIds first for industries/locations/skills—they require IDs. Can pass filters in query object or at top level.
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| query | object | Filters object. Keys: person_industries, person_locations, person_skills (number[] IDs), organization_domains (string[]), organization_industries, organization_locations, organization_keywords, organization_web_technologies (number[] IDs), role_title, role_description. Can be empty {} for total count. |
+| person_industries | array | Industry IDs from getFinderCategoryIds(category: "industries", q: "...") |
+| person_locations | array | Location IDs from getFinderCategoryIds(category: "locations", q: "...") |
+| person_skills | array | Skill IDs from getFinderCategoryIds(category: "person_skills", q: "...") |
+| organization_domains | array | Company domains e.g. ["example.com"] |
+| organization_industries | array | Organization industry IDs |
+| organization_locations | array | Organization location IDs |
+| organization_keywords | array | Organization keyword IDs |
+| organization_web_technologies | array | Web technology IDs |
+| role_title | string | Job title filter |
+| role_description | string | Role/job description filter |
+| site_id | string | Optional site UUID for context |

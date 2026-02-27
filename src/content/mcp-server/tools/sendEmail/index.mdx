@@ -1,0 +1,20 @@
+---
+title: Send Email
+description: Send an email to a recipient.
+---
+
+# Send Email
+
+Send an email to a recipient. Required: email (recipient), subject, message. Optional: from (sender name), lead_id, conversation_id for tracking.
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| email | string | Recipient email address |
+| subject | string | Email subject |
+| message | string | Email body (HTML or plain text) |
+| from | string | Sender display name |
+| lead_id | string | Lead UUID for tracking |
+| conversation_id | string | Conversation UUID for tracking |
+| agent_id | string | Agent UUID for tracking |

@@ -1,0 +1,16 @@
+---
+title: Webhooks
+description: Manage webhooks.
+---
+
+# Webhooks
+
+Manage webhooks. Use action="list" to get all webhooks. Use action="create" with url and events (array of strings) to register a new webhook.
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| action | string | Action to perform: "list" to get webhooks, "create" to register a new one. Enum: list, create |
+| url | string | The URL for the webhook (required for create action). |
+| events | array | List of events to subscribe to (required for create action). |

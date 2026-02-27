@@ -38,6 +38,7 @@ import { sendWhatsAppTool } from '@/app/api/agents/tools/sendWhatsApp/assistantP
 import { whatsappTemplateTool } from '@/app/api/agents/tools/whatsappTemplate/assistantProtocol';
 import { conversationsTool } from '@/app/api/agents/tools/conversations/assistantProtocol';
 import { messagesTool } from '@/app/api/agents/tools/messages/assistantProtocol';
+import { reportTool } from '@/app/api/agents/tools/report/assistantProtocol';
 
 /**
  * Fetch relevant memories for assistant context (site_id, user_id, instance_id)
@@ -208,5 +209,6 @@ export const getAssistantTools = (
     whatsappTemplateTool(siteId),
     conversationsTool(siteId, userId),
     messagesTool(siteId),
+    reportTool(siteId, userId ?? ''),
   ];
 };

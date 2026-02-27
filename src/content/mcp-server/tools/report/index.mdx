@@ -1,0 +1,36 @@
+---
+title: Report
+description: Query data from the database.
+---
+
+# Report
+
+Query data from the database. Use action="list" to get up to 50 records. Use action="count" to get the total matching a filter.
+
+IMPORTANT — column reference (the schema is also returned in every response as table_schema):
+• leads: id, created_at, name, email, phone, ...
+• conversations: id, created_at, status, channel, ...
+... (schema summary)
+
+Tables WITHOUT a direct site_id (scoped automatically via join — do NOT filter by site_id on these):
+• messages — scoped via conversations.site_id
+• agent_memories — scoped via agents.site_id
+
+Rules:
+- Never add a site_id filter — it is applied automatically.
+- Use "count" first to know the total before paginating.
+- Increment offset by limit to get the next page. Stop when has_more=false.
+- If you get a column error, check table_schema in the response and retry with correct column names.
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| action | string | "list" returns rows. "count" returns only the total. Enum: list, count |
+| table | string | Table to query. Enum: leads, conversations, messages, tasks, campaigns, segments, content, requirements, agents, commands, visitors, agent_memories, sites |
+| columns | array | Columns to return. Omit to return all. Use only column names from table_schema. |
+| filters | array | Filter conditions. Do NOT include site_id — it is automatic. |
+| order_by | string | Column to sort by. Default: created_at. |
+| order_dir | string | Default: desc. Enum: asc, desc |
+| limit | number | Max rows (1–50). Default: 50. |
+| offset | number | Pagination offset. Start at 0. |

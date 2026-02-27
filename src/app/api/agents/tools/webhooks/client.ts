@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const BASE_URL = 'https://api.makinari.com';
+const BASE_URL = 'https://backend.makinari.com';
 
 export interface MakinariWebhook {
   id: string;
@@ -54,6 +54,51 @@ export class MakinariClient {
     return this.request<{ success: boolean }>(`/webhooks/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  /**
+   * Fetch available tools from the remote MCP server.
+   */
+  async getTools(): Promise<any[]> {
+    const response = await this.request<any>('/api/mcp', {
+      method: 'POST',
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'tools/list',
+        params: {},
+        id: 1,
+      }),
+    });
+
+    if (response.error) {
+      throw new Error(`Failed to list tools: ${response.error.message}`);
+    }
+
+    return response.result?.tools || [];
+  }
+
+  /**
+   * Call a tool on the remote MCP server.
+   */
+  async callTool(name: string, args: Record<string, any> = {}): Promise<any> {
+    const response = await this.request<any>('/api/mcp', {
+      method: 'POST',
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+          name,
+          arguments: args,
+        },
+        id: 1,
+      }),
+    });
+
+    if (response.error) {
+      throw new Error(`Tool call failed: ${response.error.message}`);
+    }
+
+    return response.result;
   }
 }
 

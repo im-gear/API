@@ -38,9 +38,10 @@ export function getInputSchema(tool: {
 export function createMcpServer(
   siteId: string,
   userId: string | undefined,
-  instanceId: string
+  instanceId: string,
+  customTools: any[] = []
 ): Server {
-  const tools = getAssistantTools(siteId, userId, instanceId);
+  const tools = getAssistantTools(siteId, userId, instanceId, customTools);
 
   const server = new Server(
     {

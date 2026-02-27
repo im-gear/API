@@ -1,44 +1,8 @@
 {
   "index": {
-    "title": "REST API",
-    "type": "page"
-  },
-  "authentication": {
-    "title": "Autenticación",
-    "type": "page"
-  },
-  "analysis": {
-    "title": "Análisis de Sitios",
-    "type": "page",
     "display": "hidden"
   },
-  "ai": {
-    "title": "Inteligencia Artificial",
-    "type": "page"
-  },
-  "site": {
-    "title": "Gestión de Sitios",
-    "type": "page"
-  },
-  "conversation": {
-    "title": "Conversación",
-    "type": "page"
-  },
-  "visitors": {
-    "title": "Visitantes",
-    "type": "page"
-  },
-  "experiments": {
-    "title": "Experimentos",
-    "type": "page",
-    "display": "hidden"
-  },
-  "agents": {
-    "title": "Agentes",
-    "type": "page"
-  },
-  "logs": {
-    "title": "Logs",
-    "type": "page"
-  }
-} 
+  "visitors": "Visitors",
+  "finder": "Finder",
+  "robots": "Robots"
+}

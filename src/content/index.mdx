@@ -1,27 +1,33 @@
+import { Cards } from 'nextra/components'
+
 # Makinari API
 
 Welcome to the **Makinari API** documentation. This platform empowers you to build, manage, and deploy intelligent AI agents across multiple channels.
 
-## Documentation Sections
-
-### 🚀 [First Steps](/first-steps)
-Everything you need to get started.
-- **[Account Creation](/first-steps/account)**: Create your account.
-- **[Project Configuration](/first-steps/project-config)**: Set up your sites.
-- **[API Keys](/first-steps/api-keys)**: Secure your API access.
-
-### 📡 [Channels](/channels)
-Connect with your audience where they are.
-- **[WhatsApp](/channels/whatsapp)**, **[Email](/channels/mail)**, **[Social Media](/channels/social)**, and **[Website Chat](/channels/website)**.
-
-### 🤖 [Agents](/agents)
-Deploy specialized workforce agents.
-- **Marketing (CMO)**, **Sales**, **Customer Support**, **Data Analysis**, and more.
-
-### 🔌 [REST API](/rest-api)
-Deep integration with your systems.
-- Manage **Visitors**, search with **Finder**, and control **Robots**.
-
-### 🧠 [MCP Server](/mcp-server)
-Extend capabilities with the Model Context Protocol.
-- **[Setup](/mcp-server/setup)** and **[Tools](/mcp-server/tools)** reference.
+<Cards>
+  <Cards.Card icon="🚀" title="First Steps" href="/first-steps">
+    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
+      Everything you need to get started.
+    </div>
+  </Cards.Card>
+  <Cards.Card icon="📡" title="Channels" href="/channels">
+    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
+      Connect with your audience where they are.
+    </div>
+  </Cards.Card>
+  <Cards.Card icon="🤖" title="Agents" href="/agents">
+    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
+      Deploy specialized workforce agents.
+    </div>
+  </Cards.Card>
+  <Cards.Card icon="🔌" title="REST API" href="/rest-api">
+    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
+      Deep integration with your systems.
+    </div>
+  </Cards.Card>
+  <Cards.Card icon="🧠" title="MCP Server" href="/mcp-server">
+    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
+      Extend capabilities with the Model Context Protocol.
+    </div>
+  </Cards.Card>
+</Cards>

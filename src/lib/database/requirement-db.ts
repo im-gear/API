@@ -44,6 +44,8 @@ export interface RequirementFilters {
   sort_order?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
+  excluded_statuses?: string[];
+  excluded_completion_statuses?: string[];
 }
 
 export interface CreateRequirementParams {
@@ -86,6 +88,15 @@ export async function getRequirements(filters: RequirementFilters): Promise<{
   if (filters.status) query = query.eq('status', filters.status);
   if (filters.completion_status) query = query.eq('completion_status', filters.completion_status);
   if (filters.priority) query = query.eq('priority', filters.priority);
+
+  if (filters.excluded_statuses && filters.excluded_statuses.length > 0) {
+    const values = `(${filters.excluded_statuses.map(s => `"${s}"`).join(',')})`;
+    query = query.filter('status', 'not.in', values);
+  }
+  if (filters.excluded_completion_statuses && filters.excluded_completion_statuses.length > 0) {
+    const values = `(${filters.excluded_completion_statuses.map(s => `"${s}"`).join(',')})`;
+    query = query.filter('completion_status', 'not.in', values);
+  }
 
   if (filters.campaign_id) {
     const { data: campaignReqs } = await supabaseAdmin

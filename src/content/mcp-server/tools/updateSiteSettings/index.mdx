@@ -1,0 +1,37 @@
+---
+title: Update Site Settings
+description: Update the site business settings, context, and copywriting guidelines.
+---
+
+# Update Site Settings
+
+Update the site business settings, context (about, industry, etc.), and copywriting guidelines (branding, voice, tone). Use this tool when you need to update the company profile, brand voice, target audience, products, or other business configuration. Provide only the fields you want to update.
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| about | string | A comprehensive description of the company, its mission, and what it does. This serves as the primary context for the AI. |
+| company_size | string | The size of the company (e.g., "1-10", "11-50", "Enterprise"). |
+| industry | string | The primary industry the company operates in. |
+| branding | object | Brand identity, voice, tone, and guidelines. Includes brand_pyramid, brand_archetype, color_palette, typography, voice_and_tone (communication_style, personality_traits, forbidden_words, preferred_phrases), brand_guidelines (do_list, dont_list), and brand_assets. |
+| customer_journey | object | Configuration for customer journey stages (awareness, consideration, decision, purchase, retention, referral). Each stage contains metrics, actions, and tactics. |
+| products | array | List of products offered by the company. |
+| services | array | List of services offered by the company. |
+| swot | object | SWOT analysis (strengths, weaknesses, opportunities, threats). |
+| locations | array | Physical locations of the business. |
+| marketing_budget | object | Marketing budget allocation and tracking. |
+| marketing_channels | array | Configuration and performance of marketing channels. |
+| social_media | array | Social media profiles and settings. |
+| team_members | array | Team members and their roles. |
+| team_roles | array | Definitions of team roles and permissions. |
+| org_structure | object | Organizational structure and hierarchy. |
+| competitors | array | List of competitors and analysis. |
+| goals | object | Business goals (quarterly, yearly, etc.). |
+| channels | object | Communication channel configurations (email, whatsapp, etc.). |
+| business_hours | object | Company business hours. |
+| press_releases | array | Company press releases and news. |
+| partnerships | array | Company partnerships and alliances. |
+| competitor_info | object | Detailed competitive intelligence. |
+| diversity_info | object | Diversity and inclusion information. |
+| office_locations | array | Detailed office location information. |

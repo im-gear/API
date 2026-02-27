@@ -1,0 +1,131 @@
+# Copywriter Agent
+
+The Copywriter agent manages content calendars, edits content, and improves existing content based on strategic goals and SEO requirements.
+
+## Endpoints
+
+### Content Calendar
+
+Generates a strategic content calendar plan and creates draft content items based on that plan.
+
+`POST /api/agents/copywriter/content-calendar`
+
+**Request Body**
+
+```json
+{
+  "siteId": "123e4567-e89b-12d3-a456-426614174000",
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "timeframe": "next month",
+  "contentType": ["blog_post", "social_post"],
+  "targetAudience": ["small business owners"],
+  "goals": ["increase brand awareness", "drive traffic"],
+  "keywords": ["marketing automation", "growth hacking"]
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `siteId` | `string` | Yes | The UUID of the site. |
+| `userId` | `string` | No | The UUID of the user requesting the calendar. |
+| `segmentId` | `string` | No | The UUID of a specific audience segment to target. |
+| `campaignId` | `string` | No | The UUID of a specific campaign to align with. |
+| `agent_id` | `string` | No | The UUID of the specific agent to use. |
+| `timeframe` | `string` | No | The timeframe for the content plan (e.g., "next month"). |
+| `contentType` | `string` \| `string[]` | No | Types of content to generate (e.g., "blog_post", "video"). |
+| `targetAudience` | `string` \| `string[]` | No | Description of the target audience. |
+| `goals` | `string[]` | No | List of business or marketing goals. |
+| `keywords` | `string[]` | No | List of focus keywords. |
+
+**Response**
+
+Returns the generated content plan and the created draft content items.
+
+---
+
+### Content Editor
+
+Edits and refines existing content drafts based on specific style controls and user preferences.
+
+`POST /api/agents/copywriter/content-editor`
+
+**Request Body**
+
+```json
+{
+  "contentId": "123e4567-e89b-12d3-a456-426614174000",
+  "siteId": "123e4567-e89b-12d3-a456-426614174000",
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "quickAction": "improve",
+  "styleControls": {
+    "tone": "professional",
+    "creativity": "balanced"
+  }
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `contentId` | `string` | Yes | The UUID of the content to edit. |
+| `siteId` | `string` | Yes | The UUID of the site. |
+| `userId` | `string` | Yes | The UUID of the user requesting the edit. |
+| `agent_id` | `string` | No | The UUID of the specific agent. |
+| `quickAction` | `string` | No | Predefined action (e.g., "improve", "shorten", "expand"). |
+| `styleControls` | `object` | No | Object defining style parameters (tone, complexity, etc.). |
+| `aiPrompt` | `string` | No | Custom instructions for the AI. |
+
+**Response**
+
+Returns the edited content (title, description, text) and updates it in the database.
+
+---
+
+### Content Improvement
+
+Analyzes and suggests improvements for existing draft content in bulk.
+
+`POST /api/agents/copywriter/content-improve`
+
+**Request Body**
+
+```json
+{
+  "siteId": "123e4567-e89b-12d3-a456-426614174000",
+  "contentIds": ["uuid1", "uuid2"],
+  "improvementGoals": ["SEO optimization", "readability"],
+  "targetAudience": ["developers"],
+  "keywords": ["api", "documentation"]
+}
+```
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `siteId` | `string` | Yes | The UUID of the site. |
+| `contentIds` | `string[]` | No | Array of specific content UUIDs to improve. If omitted, fetches drafts. |
+| `segmentId` | `string` | No | Filter drafts by segment ID. |
+| `campaignId` | `string` | No | Filter drafts by campaign ID. |
+| `userId` | `string` | No | The UUID of the user. |
+| `improvementGoals` | `string[]` | No | Specific goals for improvement. |
+| `targetAudience` | `string` \| `string[]` | No | Target audience focus. |
+| `keywords` | `string[]` | No | Keywords to optimize for. |
+| `contentStyle` | `string` | No | Desired content style. |
+| `limit` | `number` | No | Maximum number of items to process (default: 50). |
+
+**Response**
+
+Returns the improved content items and updates them in the database.
+
+**Get Draft Content for Improvement**
+
+`GET /api/agents/copywriter/content-improve`
+
+Retrieves a list of draft content items available for improvement.
+
+**Query Parameters**
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `siteId` | `string` | Yes | The UUID of the site. |
+| `segmentId` | `string` | No | Filter by segment ID. |
+| `campaignId` | `string` | No | Filter by campaign ID. |
+| `limit` | `number` | No | Limit results (default: 50). |

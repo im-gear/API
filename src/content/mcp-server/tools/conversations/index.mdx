@@ -1,0 +1,23 @@
+---
+title: Conversations
+description: List company conversations.
+---
+
+# Conversations
+
+List company conversations. Use action="list" with optional filters: lead_id, visitor_id, user_id, agent_id, status (conversation status e.g. active), channel (e.g. whatsapp, email, chat), custom_data_status (value of custom_data.status).
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| action | string | Action to perform (list only). Enum: list |
+| lead_id | string | Filter by lead UUID |
+| visitor_id | string | Filter by visitor UUID |
+| user_id | string | Filter by user UUID |
+| agent_id | string | Filter by agent UUID |
+| status | string | Filter by conversation status (e.g. active, closed) |
+| channel | string | Filter by channel (e.g. whatsapp, email, chat) |
+| custom_data_status | string | Filter by custom_data.status (JSONB key) |
+| limit | number | Max results (default 10) |
+| offset | number | Pagination offset |

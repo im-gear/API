@@ -13,4 +13,38 @@ html, body {
 
 * {
   box-sizing: border-box;
-} 
+}
+
+/* Method Chip Styles */
+.method-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem; /* px-2 py-0.5 */
+  border-radius: 0.25rem; /* rounded */
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 500; /* font-medium */
+  margin-left: 0.5rem; /* ml-2 */
+  line-height: 1;
+}
+
+.method-chip-GET { background-color: #dbeafe; color: #1e40af; }
+.dark .method-chip-GET { background-color: #1e3a8a; color: #93c5fd; }
+
+.method-chip-POST { background-color: #dcfce7; color: #166534; }
+.dark .method-chip-POST { background-color: #14532d; color: #86efac; }
+
+.method-chip-PUT { background-color: #fef9c3; color: #854d0e; }
+.dark .method-chip-PUT { background-color: #713f12; color: #fde047; }
+
+.method-chip-DELETE { background-color: #fee2e2; color: #991b1b; }
+.dark .method-chip-DELETE { background-color: #7f1d1d; color: #fca5a5; }
+
+.method-chip-PATCH { background-color: #f3e8ff; color: #6b21a8; }
+.dark .method-chip-PATCH { background-color: #581c87; color: #d8b4fe; }
+
+.sidebar-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}

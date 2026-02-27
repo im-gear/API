@@ -1,0 +1,28 @@
+---
+title: Scheduling
+description: Manage scheduling.
+---
+
+# Scheduling
+
+Manage scheduling. Use action="check_availability" to get available slots (requires date, duration, timezone, team_id). Use action="schedule" to schedule an appointment (requires title, start_datetime, duration, timezone, context_id).
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| action | string | Action to perform: check_availability or schedule. Enum: check_availability, schedule |
+| date | string | Date in YYYY-MM-DD format |
+| duration | number | Meeting duration in minutes (min 15 for check, min 5 for schedule) |
+| timezone | string | Timezone (e.g. America/New_York) |
+| team_id | string | Team UUID (required for check_availability) |
+| start_time | string | Day start time (default 09:00) |
+| end_time | string | Day end time (default 17:00) |
+| participants | array | Participant IDs to check availability |
+| resources | array | Resource IDs |
+| title | string | Appointment title |
+| start_datetime | string | Start datetime ISO 8601 |
+| context_id | string | Context ID (lead_id, site_id, or similar) |
+| location | string | Location |
+| description | string | Description |
+| reminder | number | Reminder minutes before |

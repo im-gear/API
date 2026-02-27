@@ -12,12 +12,13 @@ MCP (Model Context Protocol) server that exposes the same agent tools used by th
 | `MCP_SITE_ID` | Yes (for both) | — | Site ID used to build the tool list (same context as the assistant). |
 | `MCP_USER_ID` | No | — | User ID for tools that require it. |
 | `MCP_INSTANCE_ID` | No | `default` | Instance ID for tools that require it. |
+| `API_URL` | No | `http://localhost:3000` | Base URL for the API. Sets `NEXT_PUBLIC_API_SERVER_URL`, `NEXT_PUBLIC_API_URL`, and `NEXT_PUBLIC_APP_URL` for tools that make API calls. |
 
 HTTP auth uses the **same API keys as the rest of the API** (middleware): `SERVICE_API_KEY` (env) or keys stored in the DB (`api_keys` table, validated via `ApiKeyService`). No separate MCP-specific keys.
 
-Load these from `.env` or `.env.local`. The server uses the same code as the API (including `getAssistantTools` and tool implementations), so any environment variables required by the API (e.g. Supabase URL and keys) must also be available.
-
 ---
+
+Load these from `.env` or `.env.local`. The server uses the same code as the API (including `getAssistantTools` and tool implementations), so any environment variables required by the API (e.g. Supabase URL and keys) must also be available.
 
 ## HTTP endpoint (for hosting for others)
 

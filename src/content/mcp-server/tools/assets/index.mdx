@@ -1,0 +1,22 @@
+---
+title: Assets
+description: Manage assets linked to robot instances.
+---
+
+# Assets
+
+Manage assets (e.g. text content, media metadata) linked to robot instances. Use action="create" to create a new asset. Use action="update" to update an existing asset. Use action="list" to get assets.
+
+## Input Schema
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| action | string | Action to perform on assets. Enum: create, list, update |
+| asset_id | string | Asset UUID (required for update) |
+| name | string | Asset name |
+| file_type | string | File type (e.g. text/plain, image/png) |
+| instance_id | string | Robot instance UUID (required for create/list) |
+| content | string | Text content of the asset |
+| metadata | object | Metadata JSON |
+| limit | number | Max results |
+| offset | number | Pagination offset |
