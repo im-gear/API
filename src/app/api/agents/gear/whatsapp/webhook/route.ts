@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         
         if (change.value?.messages && Array.isArray(change.value.messages)) {
           for (const message of change.value.messages) {
-            if (message.from && message.type === 'text') { // Only text for now
+            if (message.from && message.type === 'text' && message.text) { // Only text for now
               const phoneNumber = message.from;
               const messageContent = message.text.body;
               

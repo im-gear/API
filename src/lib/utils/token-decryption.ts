@@ -1,12 +1,12 @@
-import * as crypto from 'crypto';
+import CryptoJS from 'crypto-js';
 
 /**
- * Desencripta un token usando Node.js crypto (AES-256-CBC)
- * Soporta dos formatos:
- * - Nuevo formato: iv:encryptedContent (hex) - usado por /api/secure-tokens/encrypt
- * - Formato antiguo: salt:encrypted (base64) - usado por CryptoJS (para compatibilidad)
+ * Decrypts a token using CryptoJS (compatible with Node.js crypto AES-256-CBC)
+ * Supports two formats:
+ * - New format: iv:encryptedContent (hex) - used by /api/secure-tokens/encrypt
+ * - Old format: salt:encrypted (base64) - used by CryptoJS (for compatibility)
  * 
- * Este método detecta automáticamente el formato y desencripta apropiadamente.
+ * This method automatically detects the format and decrypts appropriately.
  */
 export function decryptToken(encryptedValue: string): string | null {
   try {
@@ -60,8 +60,8 @@ export function decryptToken(encryptedValue: string): string | null {
 }
 
 /**
- * Desencripta usando el formato nuevo (Node.js crypto)
- * Formato: iv:encryptedContent (hex)
+ * Decrypts using the new format (Node.js crypto compatible, but using CryptoJS)
+ * Format: iv:encryptedContent (hex)
  */
 function decryptNodeCryptoFormat(ivHex: string, encryptedHex: string, encryptionKey: string): string | null {
   try {
@@ -71,20 +71,24 @@ function decryptNodeCryptoFormat(ivHex: string, encryptedHex: string, encryption
       return null;
     }
     
-    const iv = Buffer.from(ivHex, 'hex');
-    const encryptedText = Buffer.from(encryptedHex, 'hex');
+    const iv = CryptoJS.enc.Hex.parse(ivHex);
+    const encrypted = CryptoJS.enc.Hex.parse(encryptedHex);
     
     // Create key from the encryption key using SHA-256
-    const key = crypto.createHash('sha256').update(String(encryptionKey)).digest();
-    
-    // Create decipher
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    const key = CryptoJS.SHA256(encryptionKey);
     
     // Decrypt
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    const decrypted = CryptoJS.AES.decrypt(
+      { ciphertext: encrypted } as any,
+      key,
+      {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+      }
+    );
     
-    return decrypted.toString('utf8');
+    return decrypted.toString(CryptoJS.enc.Utf8);
   } catch (error) {
     console.error('[TokenDecryption] Error in Node.js crypto format:', error instanceof Error ? error.message : 'Unknown error');
     return null;
@@ -92,17 +96,14 @@ function decryptNodeCryptoFormat(ivHex: string, encryptedHex: string, encryption
 }
 
 /**
- * Desencripta usando el formato antiguo (CryptoJS)
- * Formato: salt:encrypted (base64)
+ * Decrypts using the old format (CryptoJS)
+ * Format: salt:encrypted (base64)
  * 
- * NOTA: Este formato es para compatibilidad con tokens antiguos.
- * Los nuevos tokens deben usar el formato Node.js crypto.
+ * NOTE: This format is for compatibility with old tokens.
+ * New tokens should use the Node.js crypto format.
  */
 function decryptCryptoJSFormat(salt: string, encrypted: string, encryptionKey: string): string | null {
   try {
-    // Dynamic import to avoid requiring crypto-js if not needed
-    const CryptoJS = require('crypto-js');
-    
     console.log('[TokenDecryption] CryptoJS decrypt attempt:', {
       saltLength: salt.length,
       encryptedLength: encrypted.length,
@@ -199,4 +200,3 @@ function decryptCryptoJSFormat(salt: string, encrypted: string, encryptionKey: s
     return null;
   }
 }
-
