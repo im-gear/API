@@ -48,7 +48,7 @@ export default {
   urlToMarkdown: { title: withPost('URL to Markdown') },
   urlToSitemap: { title: withPost('URL to Sitemap') },
   webhooks: { title: withPost('Webhooks') },
-  webSearch: 'Web Search',
+  webSearch: { title: withPost('Web Search') },
   whatsappTemplate: { title: withPost('WhatsApp Template') },
   workflows: { title: withPost('Workflows') },
 }
