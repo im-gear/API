@@ -3,6 +3,7 @@ title: Leads
 description: Manage leads.
 ---
 
+
 # Leads
 
 Manage leads. Use action="create" to create a new lead (requires name, email). Use action="update" to update an existing lead (requires lead_id). Use action="list" to get leads with filters. Use action="qualify" to change status (requires status). Use action="identify" to identify a visitor (requires visitor_id).
@@ -41,3 +42,38 @@ Manage leads. Use action="create" to create a new lead (requires name, email). U
 | pages_visited | array | Pages visited |
 | time_spent | number | Time spent |
 | visit_count | number | Visit count |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`, `qualify` → `/qualify`, `identify` → `/identify`.
+
+```
+POST /api/agents/tools/leads/create
+POST /api/agents/tools/leads/get
+POST /api/agents/tools/leads/update
+POST /api/agents/tools/leads/qualify
+POST /api/agents/tools/leads/identify
+```
+
+```http
+POST /api/agents/tools/leads/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "name": "Jane Smith",
+  "email": "jane@example.com",
+  "company": "Acme Corp",
+  "status": "new"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "lead": { "id": "...", "name": "Jane Smith", "email": "jane@example.com" }
+}
+```

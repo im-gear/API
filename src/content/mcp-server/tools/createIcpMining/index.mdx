@@ -3,6 +3,7 @@ title: Create ICP Mining
 description: Create an ICP mining run in Finder.
 ---
 
+
 # Create ICP Mining
 
 Create an ICP mining run in Finder. Pass filters using finder field names: person_industries, person_locations, person_skills (number[] IDs from getFinderCategoryIds), organization_domains (string[]), organization_industries, organization_locations (number[] IDs), role_title, role_description. Use getFinderCategoryIds first for industries/locations/skills. At least one filter required. Optional: name, segment_id, total_targets.
@@ -25,3 +26,36 @@ Create an ICP mining run in Finder. Pass filters using finder field names: perso
 | name | string | Optional name for the ICP mining run |
 | segment_id | string | Optional segment UUID |
 | total_targets | number | Optional estimated total targets count |
+
+## REST Endpoint
+
+```
+POST /api/agents/tools/createIcpMining
+```
+
+The `site_id` field is required when calling via REST. At least one filter must be provided.
+
+```http
+POST /api/agents/tools/createIcpMining
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "name": "Tech Engineers in NYC",
+  "person_industries": [123],
+  "person_locations": [789],
+  "role_title": "Software Engineer",
+  "segment_id": "SEGMENT_UUID"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "mining_id": "...",
+  "status": "queued"
+}
+```

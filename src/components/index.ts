@@ -1,4 +1,5 @@
 // Re-export from subfolders
 export { UnifiedApiTester } from './ApiTester';
 export { default as ApiTester } from './ApiTester';
-export { default as Personalizer } from './Personalizer'; 
+export { default as Personalizer } from './Personalizer';
+export { MethodChip } from './MethodChip';

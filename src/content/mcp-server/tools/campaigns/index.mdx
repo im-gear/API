@@ -3,6 +3,7 @@ title: Campaigns
 description: Manage marketing campaigns.
 ---
 
+
 # Campaigns
 
 Manage marketing campaigns. Use action="create" to create a new campaign (requires title). Use action="update" to update an existing campaign (requires campaign_id). Use action="list" to get campaigns with filters.
@@ -25,3 +26,36 @@ Manage marketing campaigns. Use action="create" to create a new campaign (requir
 | user_id | string | Filter by user UUID |
 | limit | number | Max results |
 | offset | number | Pagination offset |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`.
+
+```
+POST /api/agents/tools/campaigns/create
+POST /api/agents/tools/campaigns/get
+POST /api/agents/tools/campaigns/update
+```
+
+```http
+POST /api/agents/tools/campaigns/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "title": "Q1 Outreach Campaign",
+  "type": "email",
+  "status": "active",
+  "priority": "high"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "campaign": { "id": "...", "title": "Q1 Outreach Campaign" }
+}
+```

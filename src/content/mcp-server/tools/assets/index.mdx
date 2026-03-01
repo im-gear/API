@@ -3,6 +3,7 @@ title: Assets
 description: Manage assets linked to robot instances.
 ---
 
+
 # Assets
 
 Manage assets (e.g. text content, media metadata) linked to robot instances. Use action="create" to create a new asset. Use action="update" to update an existing asset. Use action="list" to get assets.
@@ -20,3 +21,35 @@ Manage assets (e.g. text content, media metadata) linked to robot instances. Use
 | metadata | object | Metadata JSON |
 | limit | number | Max results |
 | offset | number | Pagination offset |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`.
+
+```
+POST /api/agents/tools/assets/create
+POST /api/agents/tools/assets/get
+POST /api/agents/tools/assets/update
+```
+
+```http
+POST /api/agents/tools/assets/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "instance_id": "INSTANCE_UUID",
+  "name": "My Asset",
+  "file_type": "text/plain",
+  "content": "Asset content here"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "asset": { "id": "...", "name": "My Asset" }
+}
+```

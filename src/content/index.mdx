@@ -1,33 +1,28 @@
-import { Cards } from 'nextra/components'
-
 # Makinari API
 
-Welcome to the **Makinari API** documentation. This platform empowers you to build, manage, and deploy intelligent AI agents across multiple channels.
+Welcome to the Makinari API documentation. This platform lets you deploy autonomous AI agents across multiple channels.
 
-<Cards>
-  <Cards.Card icon="🚀" title="First Steps" href="/first-steps">
-    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
-      Everything you need to get started.
-    </div>
-  </Cards.Card>
-  <Cards.Card icon="📡" title="Channels" href="/channels">
-    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
-      Connect with your audience where they are.
-    </div>
-  </Cards.Card>
-  <Cards.Card icon="🤖" title="Agents" href="/agents">
-    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
-      Deploy specialized workforce agents.
-    </div>
-  </Cards.Card>
-  <Cards.Card icon="🔌" title="REST API" href="/rest-api">
-    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
-      Deep integration with your systems.
-    </div>
-  </Cards.Card>
-  <Cards.Card icon="🧠" title="MCP Server" href="/mcp-server">
-    <div className="p-4 text-sm text-gray-600 dark:text-gray-400">
-      Extend capabilities with the Model Context Protocol.
-    </div>
-  </Cards.Card>
-</Cards>
+## What is Makinari?
+
+Makinari gives you a fleet of specialized AI agents that work autonomously toward your business goals. Instead of building one-off automations, you define high-level objectives and let agents plan, execute, and iterate on their own.
+
+Agents operate across channels (WhatsApp, email, website chat, social), use tools exposed via the MCP server, and can be orchestrated programmatically through the REST API.
+
+## How it fits together
+
+- **Channels** are the surfaces where your agents talk to customers. Each channel has its own setup and configuration.
+- **Agents** are the workers. Each one is specialized for a role: sales, support, copywriting, analytics, and more.
+- **AI Goals (Requirements)** are the objectives you assign. Agents consume a token budget to pursue them autonomously.
+- **REST API** lets your own systems read and write data: visitors, contacts, robot instances, and more.
+- **MCP Server** exposes Makinari tools directly to AI models like Claude or GPT, enabling model-driven workflows.
+
+## Where to start
+
+- [First Steps](/first-steps) - Everything you need to get started.
+- [Channels](/channels) - Connect with your audience where they are.
+- [Agents](/agents) - Deploy specialized workforce agents.
+- [REST API](/rest-api) - Deep integration with your systems.
+- [MCP Server](/mcp-server) - Extend capabilities with the Model Context Protocol.
+- [Open Source Repos](https://makinari.org) - Explore our open source ecosystem.
+
+New here? Start with [First Steps](/first-steps) to create your account, configure your project, and get your API key.

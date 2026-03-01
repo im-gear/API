@@ -2,9 +2,27 @@
 
 The Model Context Protocol (MCP) server enables you to expose your tools and resources to AI models, facilitating seamless integration and context-aware interactions.
 
-> **Note:** To use the MCP Server, you'll need an API Key. Learn how to generate one in the [First Steps: API Keys](/first-steps/api-keys) guide.
+To use the MCP Server, you will need an API Key. Learn how to generate one in the [First Steps: API Keys](/first-steps/api-keys) guide.
+
+## What is MCP?
+
+The **Model Context Protocol (MCP)** is an open standard that lets AI models discover and call external tools in a structured way. Instead of hardcoding API calls into your prompts, you register an MCP server and the model handles tool selection and invocation automatically.
+
+Makinari's MCP server exposes over 30 tools covering messaging, lead management, content, campaigns, reports, and more.
+
+## How it works
+
+1. You connect the Makinari MCP server to your AI client (Claude Desktop, a custom agent, etc.).
+2. The model sees a list of available tools with their descriptions and parameters.
+3. When the model decides a tool is relevant, it calls it. The server executes the action against your Makinari project and returns the result.
+4. The model uses the result to continue reasoning or respond to the user.
+
+## Setup options
+
+- [Remote (REST endpoints)](/mcp-server/setup/remote) - Connect to the hosted instance managed by Makinari. Fastest way to get started.
+- [Local installation](/mcp-server/setup/local) - Run the server on your own machine for development or custom deployments.
 
 ## Documentation
 
-- **[Setup](/mcp-server/setup)**: Learn how to install and configure the MCP server.
-- **[Tools](/mcp-server/tools)**: Explore the list of available tools exposed by the server.
+- [Setup](/mcp-server/setup) - Learn how to install and configure the MCP server.
+- [Tools](/mcp-server/tools) - Explore the list of available tools exposed by the server.

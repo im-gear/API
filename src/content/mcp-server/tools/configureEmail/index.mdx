@@ -3,6 +3,7 @@ title: Configure Email
 description: Configure email (AgentMail).
 ---
 
+
 # Configure Email
 
 Configure email (AgentMail): create or verify domains, create or delete inboxes, check domain existence, get domain info or DNS zone file. Required: action. Then provide the params for that action (e.g. domain and feedback_enabled for create_domain; username and domain for create_inbox; inbox_id for delete_inbox; domain_id or domain for verify_domain, get_domain_info, get_zone_file, check_domain_exists).
@@ -19,3 +20,38 @@ Configure email (AgentMail): create or verify domains, create or delete inboxes,
 | display_name | string | For create_inbox: optional display name for the inbox. |
 | client_id | string | For create_inbox: optional client identifier. |
 | inbox_id | string | For delete_inbox: AgentMail inbox ID to delete. |
+
+## REST Endpoint
+
+```
+POST /api/agents/tools/configureEmail
+```
+
+The `site_id` field is required when calling via REST.
+
+```http
+POST /api/agents/tools/configureEmail
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "action": "create_inbox",
+  "site_id": "YOUR_SITE_ID",
+  "domain": "yourdomain.com",
+  "username": "hello",
+  "display_name": "Hello Team"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "inbox": {
+    "id": "...",
+    "email": "hello@yourdomain.com",
+    "display_name": "Hello Team"
+  }
+}
+```

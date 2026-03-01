@@ -3,6 +3,7 @@ title: Requirements
 description: Manage requirements.
 ---
 
+
 # Requirements
 
 Manage requirements. Use action="create" to create a new requirement (requires title). Use action="update" to update an existing requirement (requires requirement_id). Use action="list" to get requirements with filters.
@@ -29,3 +30,36 @@ Manage requirements. Use action="create" to create a new requirement (requires t
 | sort_order | string | Sort order. Enum: asc, desc |
 | limit | number | Max results (default 50) |
 | offset | number | Pagination offset |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`.
+
+```
+POST /api/agents/tools/requirements/create
+POST /api/agents/tools/requirements/get
+POST /api/agents/tools/requirements/update
+```
+
+```http
+POST /api/agents/tools/requirements/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "title": "Build lead scoring model",
+  "priority": "high",
+  "status": "backlog",
+  "type": "develop"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "requirement": { "id": "...", "title": "Build lead scoring model" }
+}
+```

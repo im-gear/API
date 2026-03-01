@@ -3,6 +3,7 @@ title: Segments
 description: Manage audience segments.
 ---
 
+
 # Segments
 
 Manage audience segments. Use action="create" to create a new segment (requires name). Use action="update" to update an existing segment (requires segment_id). Use action="list" to get segments with filters.
@@ -25,3 +26,36 @@ Manage audience segments. Use action="create" to create a new segment (requires 
 | user_id | string | Filter by user UUID |
 | limit | number | Max results |
 | offset | number | Pagination offset |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`.
+
+```
+POST /api/agents/tools/segments/create
+POST /api/agents/tools/segments/get
+POST /api/agents/tools/segments/update
+```
+
+```http
+POST /api/agents/tools/segments/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "name": "SaaS Decision Makers",
+  "audience": "professional",
+  "language": "en",
+  "is_active": true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "segment": { "id": "...", "name": "SaaS Decision Makers" }
+}
+```

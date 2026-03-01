@@ -3,6 +3,7 @@ title: Tasks
 description: Manage tasks.
 ---
 
+
 # Tasks
 
 Manage tasks. Use action="create" to create a new task (requires title, type, lead_id). Use action="update" to update an existing task (requires task_id). Use action="list" to get tasks with filters.
@@ -35,3 +36,37 @@ Manage tasks. Use action="create" to create a new task (requires title, type, le
 | search | string | Text search |
 | limit | number | Max results (default 50) |
 | offset | number | Pagination offset |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`.
+
+```
+POST /api/agents/tools/tasks/create
+POST /api/agents/tools/tasks/get
+POST /api/agents/tools/tasks/update
+```
+
+```http
+POST /api/agents/tools/tasks/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "title": "Schedule product demo",
+  "type": "demo",
+  "lead_id": "LEAD_UUID",
+  "status": "pending",
+  "scheduled_date": "2026-03-15T10:00:00Z"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "task": { "id": "...", "title": "Schedule product demo", "status": "pending" }
+}
+```

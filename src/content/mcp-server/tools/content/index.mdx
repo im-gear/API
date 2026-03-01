@@ -3,6 +3,7 @@ title: Content
 description: Manage content.
 ---
 
+
 # Content
 
 Manage content. Use action="create" to create new content (requires title, type). Use action="update" to update existing content (requires content_id). Use action="list" to get content items with filters.
@@ -28,3 +29,36 @@ Manage content. Use action="create" to create new content (requires title, type)
 | search | string | Text search in title, description, text |
 | limit | number | Max results (default 50) |
 | offset | number | Pagination offset |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`.
+
+```
+POST /api/agents/tools/content/create
+POST /api/agents/tools/content/get
+POST /api/agents/tools/content/update
+```
+
+```http
+POST /api/agents/tools/content/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "title": "How AI is Changing Sales",
+  "type": "blog_post",
+  "status": "draft",
+  "campaign_id": "CAMPAIGN_UUID"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "content": { "id": "...", "title": "How AI is Changing Sales" }
+}
+```

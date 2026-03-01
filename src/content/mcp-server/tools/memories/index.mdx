@@ -3,6 +3,7 @@ title: Memories
 description: Manage agent memories.
 ---
 
+
 # Memories
 
 Manage agent memories. Actions: "save" (create new), "list" (search/filter), "update" (modify existing), "delete" (remove).
@@ -21,3 +22,35 @@ Manage agent memories. Actions: "save" (create new), "list" (search/filter), "up
 | client_id | string | Optional. Scope to a specific client. |
 | project_id | string | Optional. Scope to a specific project. |
 | task_id | string | Optional. Scope to a specific task. |
+
+## REST Endpoint
+
+Actions map to sub-routes: `save` → `/save`, `list` → `/get`, `update` → `/update`, `delete` → `/delete`.
+
+```
+POST /api/agents/tools/memories/save
+POST /api/agents/tools/memories/get
+POST /api/agents/tools/memories/update
+POST /api/agents/tools/memories/delete
+```
+
+```http
+POST /api/agents/tools/memories/save
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "content": "User prefers formal communication style",
+  "key": "user_preferences",
+  "type": "assistant_note"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "memory": { "id": "...", "key": "user_preferences" }
+}
+```

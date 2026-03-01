@@ -3,6 +3,7 @@ title: Sales Order
 description: Manage sales orders.
 ---
 
+
 # Sales Order
 
 Manage sales orders. Use action="create" to create a sales record and optionally an order. Use action="update" to update an order. Use action="list" to search orders. Use action="delete" to remove an order.
@@ -31,3 +32,38 @@ Manage sales orders. Use action="create" to create a sales record and optionally
 | site_id | string | Site UUID (for list) |
 | limit | number | Limit results |
 | offset | number | Offset results |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`, `delete` → `/delete`.
+
+```
+POST /api/agents/tools/sales-order/create
+POST /api/agents/tools/sales-order/get
+POST /api/agents/tools/sales-order/update
+POST /api/agents/tools/sales-order/delete
+```
+
+```http
+POST /api/agents/tools/sales-order/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "customer_id": "CUSTOMER_UUID",
+  "product_ids": ["PRODUCT_UUID"],
+  "total_amount": 499.00,
+  "payment_method": "transfer",
+  "create_order": true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "order": { "id": "...", "status": "pending", "total_amount": 499.00 }
+}
+```

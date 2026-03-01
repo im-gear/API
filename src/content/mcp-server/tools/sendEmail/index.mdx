@@ -3,6 +3,7 @@ title: Send Email
 description: Send an email to a recipient.
 ---
 
+
 # Send Email
 
 Send an email to a recipient. Required: email (recipient), subject, message. Optional: from (sender name), lead_id, conversation_id for tracking.
@@ -18,3 +19,37 @@ Send an email to a recipient. Required: email (recipient), subject, message. Opt
 | lead_id | string | Lead UUID for tracking |
 | conversation_id | string | Conversation UUID for tracking |
 | agent_id | string | Agent UUID for tracking |
+
+## REST Endpoint
+
+```
+POST /api/agents/tools/sendEmail
+```
+
+The `site_id` field is required when calling via REST.
+
+```http
+POST /api/agents/tools/sendEmail
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "email": "recipient@example.com",
+  "subject": "Hello from Makinari",
+  "message": "<p>Hi there!</p>",
+  "from": "Sales Team",
+  "lead_id": "LEAD_UUID"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "status": "sent",
+  "envelope_id": "...",
+  "email_id": "..."
+}
+```

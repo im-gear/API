@@ -22,5 +22,10 @@ export default {
   "mcp-server": {
     title: "MCP Server",
     type: "page"
+  },
+  "open-source": {
+    title: "Open Source",
+    type: "page",
+    href: "https://makinari.org"
   }
 }

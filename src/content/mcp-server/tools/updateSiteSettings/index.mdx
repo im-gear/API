@@ -3,6 +3,7 @@ title: Update Site Settings
 description: Update the site business settings, context, and copywriting guidelines.
 ---
 
+
 # Update Site Settings
 
 Update the site business settings, context (about, industry, etc.), and copywriting guidelines (branding, voice, tone). Use this tool when you need to update the company profile, brand voice, target audience, products, or other business configuration. Provide only the fields you want to update.
@@ -35,3 +36,32 @@ Update the site business settings, context (about, industry, etc.), and copywrit
 | competitor_info | object | Detailed competitive intelligence. |
 | diversity_info | object | Diversity and inclusion information. |
 | office_locations | array | Detailed office location information. |
+
+## REST Endpoint
+
+```
+POST /api/agents/tools/updateSiteSettings
+```
+
+The `site_id` field is required when calling via REST. Provide only the fields you want to update — all fields are optional.
+
+```http
+POST /api/agents/tools/updateSiteSettings
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "about": "Acme Corp builds AI-powered sales tools for B2B companies.",
+  "industry": "Software & Technology",
+  "company_size": "11-50"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true
+}
+```

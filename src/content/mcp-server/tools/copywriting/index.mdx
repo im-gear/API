@@ -3,6 +3,7 @@ title: Copywriting
 description: Manage copywriting templates and approved copies.
 ---
 
+
 # Copywriting
 
 Manage copywriting templates and approved copies. Use action="create" to create new copy (requires title, copy_type, content). Use action="update" to update existing copy (requires copywriting_id). Use action="list" to get copies with filters. Use action="get" to get a single copy by id. Use action="delete" to remove a copy.
@@ -26,3 +27,38 @@ Manage copywriting templates and approved copies. Use action="create" to create 
 | search | string | Text search in title, content, target_audience |
 | limit | number | Max results (default 50) |
 | offset | number | Pagination offset |
+
+## REST Endpoint
+
+Actions map to sub-routes: `create` → `/create`, `list` → `/get`, `update` → `/update`, `delete` → `/delete`.
+
+```
+POST /api/agents/tools/copywriting/create
+POST /api/agents/tools/copywriting/get
+POST /api/agents/tools/copywriting/update
+POST /api/agents/tools/copywriting/delete
+```
+
+```http
+POST /api/agents/tools/copywriting/create
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "site_id": "YOUR_SITE_ID",
+  "title": "Cold Email — SaaS Intro",
+  "copy_type": "email",
+  "content": "Hi {{name}}, I wanted to reach out...",
+  "status": "approved",
+  "target_audience": "SaaS founders"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "copywriting": { "id": "...", "title": "Cold Email — SaaS Intro" }
+}
+```
