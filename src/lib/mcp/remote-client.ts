@@ -43,8 +43,14 @@ export async function invokeRemoteTool(path: string, payload: any) {
     'Content-Type': 'application/json',
   };
   
+  const siteId = process.env.MCP_SITE_ID;
+  if (siteId) {
+    headers['x-mcp-site-id'] = siteId;
+  }
+  
   if (apiKey) {
     headers['x-api-key'] = apiKey;
+    headers['Authorization'] = `Bearer ${apiKey}`;
   }
   
   console.log(`[RemoteTool] Invoking ${url} (Remote Mode)`);

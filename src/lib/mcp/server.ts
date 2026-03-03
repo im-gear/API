@@ -73,7 +73,13 @@ export function createMcpServer(
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json, text/event-stream',
-            ...(apiKey ? { 'x-api-key': apiKey } : {})
+            'x-mcp-site-id': siteId,
+            ...(userId ? { 'x-mcp-user-id': userId } : {}),
+            'x-mcp-instance-id': instanceId,
+            ...(apiKey ? { 
+              'x-api-key': apiKey,
+              'Authorization': `Bearer ${apiKey}`
+            } : {})
           },
           body: JSON.stringify({
             jsonrpc: "2.0",
@@ -120,7 +126,13 @@ export function createMcpServer(
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json, text/event-stream',
-            ...(apiKey ? { 'x-api-key': apiKey } : {})
+            'x-mcp-site-id': siteId,
+            ...(userId ? { 'x-mcp-user-id': userId } : {}),
+            'x-mcp-instance-id': instanceId,
+            ...(apiKey ? { 
+              'x-api-key': apiKey,
+              'Authorization': `Bearer ${apiKey}`
+            } : {})
           },
           body: JSON.stringify({
             jsonrpc: "2.0",

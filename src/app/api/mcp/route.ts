@@ -19,16 +19,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const siteId = process.env.MCP_SITE_ID;
+  const siteId = request.headers.get('x-mcp-site-id') || process.env.MCP_SITE_ID;
   if (!siteId) {
     return NextResponse.json(
-      { error: 'MCP_SITE_ID is not configured on the server.' },
+      { error: 'MCP_SITE_ID is not configured on the server and was not provided in headers.' },
       { status: 503 }
     );
   }
 
-  const userId = process.env.MCP_USER_ID;
-  const instanceId = process.env.MCP_INSTANCE_ID ?? 'default';
+  const userId = request.headers.get('x-mcp-user-id') || process.env.MCP_USER_ID;
+  const instanceId = request.headers.get('x-mcp-instance-id') || process.env.MCP_INSTANCE_ID ?? 'default';
 
   let parsedBody: unknown;
   try {
