@@ -12,6 +12,7 @@ const instanceId = process.env.MCP_INSTANCE_ID ?? 'default';
 const apiUrl = process.env.API_URL || 'http://localhost:3000';
 
 // Set the API URL for tools that use it (e.g. ImageGenerationService)
+process.env.API_URL = apiUrl;
 process.env.NEXT_PUBLIC_API_SERVER_URL = apiUrl;
 process.env.NEXT_PUBLIC_API_URL = apiUrl;
 process.env.NEXT_PUBLIC_APP_URL = apiUrl;
