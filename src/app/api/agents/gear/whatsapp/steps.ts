@@ -1,6 +1,7 @@
 'use step';
 
 import { WhatsAppSendService } from '@/lib/services/whatsapp/WhatsAppSendService';
+import { formatMarkdownForWhatsApp } from '@/lib/utils/whatsapp-formatter';
 
 export async function sendWhatsAppTypingIndicator(
   messageSid: string,
@@ -95,6 +96,8 @@ export async function sendWhatsAppResponse(
 ) {
   'use step';
   
+  const formattedMessage = formatMarkdownForWhatsApp(message);
+  
   console.log(`[GearAgent] Sending response to WhatsApp: ${userPhone}`);
   
   // Custom Twilio variables for this special Gear Agent
@@ -124,7 +127,7 @@ export async function sendWhatsAppResponse(
       
       formData.append('From', `whatsapp:${cleanFrom}`);
       formData.append('To', `whatsapp:${cleanTo}`);
-      formData.append('Body', message);
+      formData.append('Body', formattedMessage);
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -155,7 +158,7 @@ export async function sendWhatsAppResponse(
   try {
     await WhatsAppSendService.sendMessage({
       phone_number: userPhone,
-      message: message,
+      message: formattedMessage,
       site_id: siteId,
       responseWindowEnabled: true
     });

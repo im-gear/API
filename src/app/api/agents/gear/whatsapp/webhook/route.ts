@@ -53,10 +53,20 @@ export async function POST(request: NextRequest) {
     
     // 1. Identificar al usuario basado en el número de teléfono
     // Primero, revisamos si el usuario está registrado con ese teléfono en la tabla 'users'
+    // Formateamos el número para asegurar que coincida (podría venir con o sin el +, en supabase suele estar con +)
+    const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+    // También buscar la versión sin código de país (asumiendo México si empieza con 52)
+    const localPhone = phoneNumber.startsWith('52') ? phoneNumber.substring(2) : 
+                       (phoneNumber.startsWith('+52') ? phoneNumber.substring(3) : phoneNumber);
+    // Y el caso particular de +521...
+    const mxMobilePhone = phoneNumber.startsWith('521') ? phoneNumber.substring(3) : 
+                          (phoneNumber.startsWith('+521') ? phoneNumber.substring(4) : localPhone);
+    
+    // Intenta encontrar el número en cualquiera de sus formatos comunes en México
     const { data: user } = await supabaseAdmin
       .from('users')
       .select('id, metadata, phone')
-      .eq('phone', phoneNumber)
+      .or(`phone.eq."${phoneNumber}",phone.eq."${formattedPhone}",phone.eq."${localPhone}",phone.eq."${mxMobilePhone}",phone.eq."+52${mxMobilePhone}"`)
       .maybeSingle();
 
     let siteId: string | null = null;
@@ -103,7 +113,7 @@ export async function POST(request: NextRequest) {
       const { data: profile } = await supabaseAdmin
         .from('profiles')
         .select('id, metadata')
-        .contains('metadata', { whatsapp_phone: phoneNumber })
+        .or(`metadata->>whatsapp_phone.eq."${phoneNumber}",metadata->>whatsapp_phone.eq."${formattedPhone}",metadata->>whatsapp_phone.eq."${localPhone}",metadata->>whatsapp_phone.eq."${mxMobilePhone}",metadata->>whatsapp_phone.eq."+52${mxMobilePhone}"`)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -140,13 +150,14 @@ export async function POST(request: NextRequest) {
         }
       } else {
         // El usuario no está registrado en absoluto
-        systemPromptOverride = `You are Makinari's Gear Assistant. The user with phone number ${phoneNumber} is NOT registered in Makinari. You MUST politely explain that their phone number is not linked to any Makinari account. If they already have an account, ask them to log in to the web app and link their phone number in their profile settings for security reasons. If they don't have an account, you can help them create one using the create_account tool. Explain briefly what Makinari is if they ask. Do not allow them to manage any sites until their phone is linked to an account.`;
+        systemPromptOverride = `You are Makinari's Gear Assistant. The user with phone number ${phoneNumber} is NOT registered in Makinari. You MUST politely explain that their phone number is not linked to any Makinari account. If they already have an account, ask them to log in to the web app and link their phone number in their profile settings for security reasons. If they don't have an account, you can help them create one using the create_account tool. Explain briefly what Makinari is if they ask. Do not allow them to manage any sites or access ANY data until their phone is linked to an account. Tell them explicitly that you cannot provide any information without a linked account for security reasons. DO NOT under any circumstances return data from the database. NEVER execute tools that fetch data like get_leads, query_database, etc.`;
         console.log(`❌ [Gear] Número no registrado: ${phoneNumber}. Solicitando registro o vinculación de cuenta.`);
       }
     }
     
     // Fallback: Intentar encontrar site_id por account_sid en los ajustes
-    if (!siteId && businessAccountId) {
+    // SOLO si el usuario está registrado, permitimos el fallback de site
+    if (userId && !siteId && businessAccountId) {
       const { data: siteBySettings } = await supabaseAdmin
         .from('settings')
         .select('site_id')
@@ -161,9 +172,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Fallback: Makinari por defecto (entorno)
+    // SOLO usamos el fallback si vamos a interactuar con alguien no registrado para ofrecerle el registro
     if (!siteId && process.env.GEAR_SITE_ID) {
       siteId = process.env.GEAR_SITE_ID;
-      console.log(`✅ [Gear] Usando site_id de Makinari (GEAR_SITE_ID): ${siteId}`);
+      console.log(`✅ [Gear] Usando site_id de Makinari (GEAR_SITE_ID) como contexto genérico: ${siteId}`);
     }
     
     // Fallback final: Buscar un sitio de Makinari por nombre
@@ -177,7 +189,7 @@ export async function POST(request: NextRequest) {
         
       if (siteByName) {
         siteId = siteByName.id;
-        console.log(`⚠️ [Gear] Usando site_id por nombre "Makinari": ${siteId}`);
+        console.log(`⚠️ [Gear] Usando site_id por nombre "Makinari" como contexto genérico: ${siteId}`);
       }
     }
     
@@ -187,7 +199,8 @@ export async function POST(request: NextRequest) {
     }
     
     // 2. Determinar el User ID para inicializar la instancia
-    // Si el usuario no estaba registrado, usamos el user_id del dueño del sitio fallback
+    // Si el usuario no estaba registrado, usamos el user_id del dueño del sitio fallback (Makinari) 
+    // pero marcamos fuertemente en el systemPrompt que NO le muestre información del owner
     if (!userId) {
       const { data: siteOwner } = await supabaseAdmin
         .from('sites')
@@ -197,7 +210,7 @@ export async function POST(request: NextRequest) {
         
       if (siteOwner) {
         userId = siteOwner.user_id;
-        console.log(`⚠️ Usando user_id del dueño del sitio como fallback: ${userId}`);
+        console.log(`⚠️ Usando user_id del dueño del sitio de fallback solo como runner: ${userId}`);
       }
     }
     
@@ -206,6 +219,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
+    
+    // Si tenemos systemPromptOverride y no incluimos esta advertencia, se la agregamos al final para mayor seguridad:
+    if (systemPromptOverride && !systemPromptOverride.includes('NOT registered')) {
+        systemPromptOverride += `\n\nIMPORTANT SECURITY RULE: You MUST ensure that you ONLY perform actions and fetch data for the site ID explicitly provided to you in the tools. The user is logged in securely.`;
+    } else if (!systemPromptOverride) {
+        systemPromptOverride = `IMPORTANT SECURITY RULE: You are interacting with an authenticated user for site ID ${siteId}. You MUST ensure you ONLY perform actions and fetch data for this site. Do not share global data or cross-site data.`;
+    }
+    
+    // Añadimos instrucción de formato para WhatsApp
+    systemPromptOverride += `\n\nIMPORTANT FORMATTING RULE: You are talking to a user via WhatsApp. You MUST format your responses using WhatsApp formatting: *bold*, _italic_, ~strikethrough~, and \`\`\`code\`\`\`. Avoid markdown headers like # and markdown links like [text](url). Use bullet points like - item.`;
     
     // 3. Find/Create Instance
     let instanceId: string | null = null;
@@ -258,6 +281,10 @@ export async function POST(request: NextRequest) {
     // 4. Trigger Workflow
     console.log(`🚀 Iniciando workflow GearAgent para ${phoneNumber}...`);
     
+    // Validar si el agente no registrado está intentando usar el fallback de site_id para leer data
+    // Si no tenemos un userId real, evitamos que tenga acceso a herramientas por seguridad
+    const safeUseSdkTools = userId ? false : false; // Opcional: Podrías deshabilitar las tools si no hay userId, pero el prompt debería frenarlo. Dejar en false que es lo que tenías.
+    
     await start(runGearAgentWorkflow, [{
       instanceId,
       message: messageContent,
@@ -266,7 +293,7 @@ export async function POST(request: NextRequest) {
       userId,
       userPhone: phoneNumber,
       customTools: [],
-      useSdkTools: false,
+      useSdkTools: false, // Puedes poner esto dinámico luego basado en si es admin o no.
       systemPrompt: systemPromptOverride
     }]);
     

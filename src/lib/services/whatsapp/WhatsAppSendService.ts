@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { WhatsAppTemplateService } from './WhatsAppTemplateService';
 import { attemptPhoneRescue } from '@/lib/utils/phone-normalizer';
 import { decryptToken } from '@/lib/utils/token-decryption';
+import { formatMarkdownForWhatsApp } from '@/lib/utils/whatsapp-formatter';
 
 export interface SendWhatsAppParams {
   phone_number: string;
@@ -613,7 +614,7 @@ export class WhatsAppSendService {
    * Formatea el mensaje (actualmente sin modificaciones)
    */
   private static formatMessage(message: string, siteInfo: SiteInfo, from?: string): string {
-    return message;
+    return formatMarkdownForWhatsApp(message);
   }
 
   /**
