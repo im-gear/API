@@ -57,14 +57,20 @@ export async function POST(request: NextRequest) {
     // 1. Identificar al usuario basado en el número de teléfono
     // Intenta encontrar el número en cualquiera de sus formatos usando el número crudo para mayor alcance
     const phoneVariants = normalizePhoneForSearch(rawPhoneNumber);
-    // IMPORTANTE: Restauradas las comillas dobles, Supabase/PostgREST falla si un valor contiene espacios y no tiene comillas en un filtro .or()
-    const phoneQueries = phoneVariants.map(variant => `phone.eq."${variant}"`).join(',');
     
-    const { data: user } = await supabaseAdmin
-      .from('users')
-      .select('id, metadata, phone')
-      .or(phoneQueries)
-      .maybeSingle();
+    // Llamamos a la función RPC segura para buscar en auth.users
+    const { data: users, error: userError } = await supabaseAdmin
+      .rpc('get_user_by_phone', { phone_variants: phoneVariants });
+
+    if (userError) {
+      console.error('❌ Error buscando usuario por teléfono vía RPC:', userError);
+    }
+
+    const user = users && users.length > 0 ? {
+      id: users[0].id,
+      metadata: users[0].raw_user_meta_data,
+      phone: users[0].phone || users[0].raw_user_meta_data?.phone
+    } : null;
 
     let siteId: string | null = null;
     let userId: string | null = null;
