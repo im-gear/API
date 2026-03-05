@@ -51,29 +51,61 @@ export async function POST(request: NextRequest) {
     
     console.log(`📥 Procesando mensaje de Twilio WhatsApp (Gear) de ${phoneNumber}: ${messageContent.substring(0, 50)}...`);
     
-    // 1. Find Site ID
-    let siteId: string | null = null;
-    
-    // El Gear Agent en Makinari opera respondiendo solicitudes para otros sitios (sus clientes)
-    // Cuando entra un mensaje a este webhook, verificamos si el usuario ya nos ha dicho 
-    // a qué sitio quiere interactuar (por ejemplo con un tool 'set_site' o un custom_data previo)
-    
-    // Primero, revisamos si el usuario (basado en su celular) ya tiene un sitio activo seleccionado en Makinari
-    const { data: activeUser } = await supabaseAdmin
-      .from('users')
-      .select('id, custom_data')
-      .contains('custom_data', { whatsapp_phone: phoneNumber })
+    // 1. Identificar al usuario basado en el número de teléfono
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('id, metadata')
+      .contains('metadata', { whatsapp_phone: phoneNumber })
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    // Si el usuario tiene un "active_target_site_id" en sus custom_data, usamos ese para procesar
-    if (activeUser && activeUser.custom_data?.active_target_site_id) {
-      siteId = activeUser.custom_data.active_target_site_id;
-      console.log(`✅ [Gear] Redirigiendo request al sitio cliente seleccionado por el usuario: ${siteId}`);
-    } 
+    let siteId: string | null = null;
+    let userId: string | null = null;
+    let systemPromptOverride: string | undefined = undefined;
+
+    if (profile) {
+      userId = profile.id;
+      
+      // Obtener todos los sitios pertenecientes a este usuario
+      const { data: userSites } = await supabaseAdmin
+        .from('sites')
+        .select('id, name')
+        .eq('user_id', userId);
+
+      // Si el usuario ya seleccionó un sitio activo
+      if (profile.metadata?.active_target_site_id) {
+        // Validamos que el sitio seleccionado aún sea de su propiedad
+        const isOwner = userSites?.some(s => s.id === profile.metadata!.active_target_site_id);
+        if (isOwner) {
+          siteId = profile.metadata.active_target_site_id;
+          console.log(`✅ [Gear] Usando sitio activo seleccionado: ${siteId}`);
+        }
+      } 
+      
+      // Si no hay sitio activo seleccionado, determinamos basado en sus sitios disponibles
+      if (!siteId && userSites && userSites.length > 0) {
+        if (userSites.length === 1) {
+          siteId = userSites[0].id;
+          console.log(`✅ [Gear] Usando único sitio del usuario: ${siteId}`);
+        } else if (userSites.length > 1) {
+          // El usuario tiene varios sitios, debe elegir uno.
+          siteId = userSites[0].id; 
+          systemPromptOverride = "You are Makinari's Gear Assistant. The user has multiple projects but hasn't selected an active one. You MUST use the instance_project tool with action='list' to show them their projects and ask which one they want to manage. Do not perform any changes until they select a project.";
+          console.log(`⚠️ [Gear] Usuario con múltiples sitios sin seleccionar. Forzando tool para elegir.`);
+        }
+      } else if (!siteId) {
+        // El usuario está registrado pero no tiene ningún sitio creado
+        systemPromptOverride = "You are Makinari's Gear Assistant. The user is registered but has no projects yet. Ask them if they want to create a new project.";
+        console.log(`⚠️ [Gear] Usuario registrado sin sitios.`);
+      }
+    } else {
+      // El usuario no está registrado en absoluto
+      systemPromptOverride = `You are Makinari's Gear Assistant. The user with phone number ${phoneNumber} is NOT registered in Makinari. You MUST politely ask them to create an account first to use the service. Explain briefly what Makinari is. Do not allow them to manage any sites. You can use the create_account tool if they want to create one.`;
+      console.log(`❌ [Gear] Número no registrado: ${phoneNumber}. Forzando creación de cuenta.`);
+    }
     
-    // Try to find site by account_sid in settings
+    // Fallback: Intentar encontrar site_id por account_sid en los ajustes
     if (!siteId && businessAccountId) {
       const { data: siteBySettings } = await supabaseAdmin
         .from('settings')
@@ -88,13 +120,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if there's a specific GEAR_SITE_ID in env variables (Este es el id de MAKINARI por defecto)
+    // Fallback: Makinari por defecto (entorno)
     if (!siteId && process.env.GEAR_SITE_ID) {
       siteId = process.env.GEAR_SITE_ID;
       console.log(`✅ [Gear] Usando site_id de Makinari (GEAR_SITE_ID): ${siteId}`);
     }
     
-    // Fallback: Find site by name "Makinari"
+    // Fallback final: Buscar un sitio de Makinari por nombre
     if (!siteId) {
       const { data: siteByName } = await supabaseAdmin
         .from('sites')
@@ -110,48 +142,30 @@ export async function POST(request: NextRequest) {
     }
     
     if (!siteId) {
-      console.error('❌ No se pudo encontrar un site_id válido para el agente Gear');
+      console.error('❌ No se pudo encontrar un site_id válido para inicializar el agente');
       return NextResponse.json({ success: true }); // Twilio siempre espera 200
     }
     
-    // 2. Find User ID based on Phone Number
-    let userId: string | null = null;
-    
-    // El usuario final (cliente del cliente) es el visitor, pero la instancia le pertenece
-    // al dueño del sitio cliente (o al dueño de Makinari).
-    // NOTA: No usamos activeUser.id porque queremos que el asistente
-    // corra en nombre del dueño del sitio, no del visitante.
-    
-    const { data: site } = await supabaseAdmin
-      .from('sites')
-      .select('user_id')
-      .eq('id', siteId)
-      .maybeSingle();
-      
-    if (site) {
-      userId = site.user_id; // Use site owner 
-      console.log(`✅ Usando user_id del dueño del sitio: ${userId}`);
-    } else {
-      // En caso de que se use un active_target_site_id que ya no existe o que no tenga user_id
-      // usamos el de Makinari/el de entorno por defecto
-      const fallbackSiteId = process.env.GEAR_SITE_ID;
-      if (fallbackSiteId && fallbackSiteId !== siteId) {
-          const { data: fallbackSite } = await supabaseAdmin
-            .from('sites')
-            .select('user_id')
-            .eq('id', fallbackSiteId)
-            .maybeSingle();
-          if (fallbackSite) {
-             userId = fallbackSite.user_id;
-             console.log(`⚠️ Usando user_id de Makinari como fallback: ${userId}`);
-          }
+    // 2. Determinar el User ID para inicializar la instancia
+    // Si el usuario no estaba registrado, usamos el user_id del dueño del sitio fallback
+    if (!userId) {
+      const { data: siteOwner } = await supabaseAdmin
+        .from('sites')
+        .select('user_id')
+        .eq('id', siteId)
+        .maybeSingle();
+        
+      if (siteOwner) {
+        userId = siteOwner.user_id;
+        console.log(`⚠️ Usando user_id del dueño del sitio como fallback: ${userId}`);
       }
     }
     
     if (!userId) {
-      console.error('❌ No se pudo encontrar un user_id válido');
+      console.error('❌ No se pudo encontrar un user_id válido para inicializar la instancia');
       return NextResponse.json({ success: true });
     }
+
     
     // 3. Find/Create Instance
     let instanceId: string | null = null;
@@ -212,7 +226,8 @@ export async function POST(request: NextRequest) {
       userId,
       userPhone: phoneNumber,
       customTools: [],
-      useSdkTools: false
+      useSdkTools: false,
+      systemPrompt: systemPromptOverride
     }]);
     
     console.log('✅ Workflow iniciado');
