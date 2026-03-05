@@ -147,17 +147,6 @@ export function verifyAccountTool() {
 
             if (user) {
                 userId = user.id;
-            } else {
-                // Try 'profiles' table
-                const { data: profile, error: profileError } = await supabaseAdmin
-                    .from('profiles')
-                    .select('id')
-                    .eq('email', args.email)
-                    .maybeSingle();
-                
-                if (profile) {
-                    userId = profile.id;
-                }
             }
 
             if (!userId) {

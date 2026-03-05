@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // 1. Identificar al usuario basado en el número de teléfono
     // Intenta encontrar el número en cualquiera de sus formatos
     const phoneVariants = normalizePhoneForSearch(phoneNumber);
-    const phoneQueries = phoneVariants.map(variant => `phone.eq."${variant}"`).join(',');
+    const phoneQueries = phoneVariants.map(variant => `phone.eq.${variant}`).join(',');
     
     const { data: user } = await supabaseAdmin
       .from('users')
@@ -104,51 +104,9 @@ export async function POST(request: NextRequest) {
         console.log(`⚠️ [Gear] Usuario registrado sin sitios.`);
       }
     } else {
-      // Si no está por teléfono directo, podríamos buscar en metadata whatsapp_phone
-      const metadataPhoneQueries = phoneVariants.map(variant => `metadata->>whatsapp_phone.eq."${variant}"`).join(',');
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('id, metadata')
-        .or(metadataPhoneQueries)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-        
-      if (profile) {
-        userId = profile.id;
-        
-        // Repetimos lógica de sitios para este profile
-        const { data: profileSites } = await supabaseAdmin
-          .from('sites')
-          .select('id, name')
-          .eq('user_id', userId);
-
-        if (profile.metadata?.active_target_site_id) {
-          const isOwner = profileSites?.some(s => s.id === profile.metadata!.active_target_site_id);
-          if (isOwner) {
-            siteId = profile.metadata.active_target_site_id;
-            console.log(`✅ [Gear] Usando sitio activo seleccionado (profile metadata): ${siteId}`);
-          }
-        } 
-        
-        if (!siteId && profileSites && profileSites.length > 0) {
-          if (profileSites.length === 1) {
-            siteId = profileSites[0].id;
-            console.log(`✅ [Gear] Usando único sitio del usuario (profile): ${siteId}`);
-          } else if (profileSites.length > 1) {
-            siteId = profileSites[0].id; 
-            systemPromptOverride = "You are Makinari's Gear Assistant. The user has multiple projects but hasn't selected an active one. You MUST use the instance_project tool with action='list' to show them their projects and ask which one they want to manage. Do not perform any changes until they select a project.";
-            console.log(`⚠️ [Gear] Usuario (profile) con múltiples sitios sin seleccionar. Forzando tool para elegir.`);
-          }
-        } else if (!siteId) {
-          systemPromptOverride = "You are Makinari's Gear Assistant. The user is registered but has no projects yet. Ask them if they want to create a new project.";
-          console.log(`⚠️ [Gear] Usuario registrado (profile) sin sitios.`);
-        }
-      } else {
-        // El usuario no está registrado en absoluto
-        systemPromptOverride = `You are Makinari's Gear Assistant. The user with phone number ${phoneNumber} is NOT registered in Makinari. You MUST politely explain that their phone number is not linked to any Makinari account. If they already have an account, ask them to log in to the web app and link their phone number in their profile settings for security reasons. If they don't have an account, you can help them create one using the create_account tool. Explain briefly what Makinari is if they ask. Do not allow them to manage any sites or access ANY data until their phone is linked to an account. Tell them explicitly that you cannot provide any information without a linked account for security reasons. DO NOT under any circumstances return data from the database. NEVER execute tools that fetch data like get_leads, query_database, etc.`;
-        console.log(`❌ [Gear] Número no registrado: ${phoneNumber}. Solicitando registro o vinculación de cuenta.`);
-      }
+      // El usuario no está registrado en absoluto
+      systemPromptOverride = `You are Makinari's Gear Assistant. The user with phone number ${phoneNumber} is NOT registered in Makinari. You MUST politely explain that their phone number is not linked to any Makinari account. If they already have an account, ask them to log in to the web app and link their phone number in their profile settings for security reasons. If they don't have an account, you can help them create one using the create_account tool. Explain briefly what Makinari is if they ask. Do not allow them to manage any sites or access ANY data until their phone is linked to an account. Tell them explicitly that you cannot provide any information without a linked account for security reasons. DO NOT under any circumstances return data from the database. NEVER execute tools that fetch data like get_leads, query_database, etc.`;
+      console.log(`❌ [Gear] Número no registrado: ${phoneNumber}. Solicitando registro o vinculación de cuenta.`);
     }
     
     // Fallback: Intentar encontrar site_id por account_sid en los ajustes
