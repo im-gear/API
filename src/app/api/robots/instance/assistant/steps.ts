@@ -15,6 +15,7 @@ export interface AssistantContext {
   instance: any;
   systemPrompt: string;
   customTools: any[];
+  agentType?: string;
   executionOptions: {
     use_sdk_tools: boolean;
     provider: 'scrapybara' | 'azure' | 'openai';
@@ -33,7 +34,8 @@ export async function prepareAssistantContext(
   userId: string,
   customTools: any[],
   useSdkTools: boolean,
-  systemPrompt?: string
+  systemPrompt?: string,
+  agentType?: string
 ): Promise<AssistantContext> {
   'use step';
   
@@ -146,7 +148,7 @@ export async function prepareAssistantContext(
   
   // Get tools list just for counting/prompt purposes here
   // We do NOT pass these instantiated tools in the return value to avoid serialization issues
-  const toolsWithImageGeneration = getAssistantTools(siteId, userId, instanceId, customTools);
+  const toolsWithImageGeneration = getAssistantTools(siteId, userId, instanceId, customTools, agentType);
   
   const assetsContext = await InstanceAssetsService.appendAssetsToSystemPrompt('', instanceId);
 
@@ -208,6 +210,7 @@ PLAN vs STEPS:
     instance,
     systemPrompt: finalSystemPrompt,
     customTools, // Pass definitions, not instantiated tools
+    agentType,
     initialMessage: message,
     executionOptions: {
       use_sdk_tools: shouldUseSDKTools && !useAssistantOnly,
@@ -231,7 +234,8 @@ export async function processAssistantTurn(
     context.executionOptions.site_id,
     context.executionOptions.user_id,
     context.executionOptions.instance_id,
-    context.customTools
+    context.customTools,
+    context.agentType
   );
   
   // Re-assemble execution options

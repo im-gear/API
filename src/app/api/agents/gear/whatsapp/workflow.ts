@@ -1,7 +1,6 @@
 'use workflow';
 
 import { runAssistantWorkflow } from '@/app/api/robots/instance/assistant/workflow';
-import { instanceProjectTool, createAccountTool, verifyAccountTool } from './tools';
 import { sendWhatsAppResponse, sendWhatsAppError } from './steps';
 
 interface GearAgentWorkflowInput {
@@ -30,25 +29,19 @@ export async function runGearAgentWorkflow({
   console.log(`[GearAgent] Starting workflow for user ${userId} (${userPhone}) on instance ${instanceId}`);
 
   try {
-    // Add Gear Agent specific tools
-    const gearTools = [
-      instanceProjectTool(userId),
-      createAccountTool(),
-      verifyAccountTool()
-    ];
-
-    // Merge with customTools
-    const allTools = [...customTools, ...gearTools];
-
+    // Note: We don't pass gearTools directly as customTools because workflows cannot serialize functions.
+    // Instead, we pass 'gear' as the agentType to runAssistantWorkflow.
+    
     // Execute the assistant workflow
     const result = await runAssistantWorkflow(
       instanceId,
       message,
       siteId,
       userId,
-      allTools,
+      customTools,
       useSdkTools,
-      systemPrompt
+      systemPrompt,
+      'gear'
     );
 
     console.log(`[GearAgent] Assistant execution completed. Response length: ${result.assistant_response?.length || 0}`);

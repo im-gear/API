@@ -39,6 +39,7 @@ import { whatsappTemplateTool } from '@/app/api/agents/tools/whatsappTemplate/as
 import { conversationsTool } from '@/app/api/agents/tools/conversations/assistantProtocol';
 import { messagesTool } from '@/app/api/agents/tools/messages/assistantProtocol';
 import { reportTool } from '@/app/api/agents/tools/report/assistantProtocol';
+import { instanceProjectTool, createAccountTool, verifyAccountTool } from '@/app/api/agents/gear/whatsapp/tools';
 
 /**
  * Fetch relevant memories for assistant context (site_id, user_id, instance_id)
@@ -172,9 +173,10 @@ export const getAssistantTools = (
   siteId: string,
   userId: string | undefined,
   instanceId: string,
-  customTools: any[] = []
+  customTools: any[] = [],
+  agentType?: string
 ) => {
-  return [
+  const tools = [
     ...customTools,
     generateImageTool(siteId, instanceId),
     generateVideoTool(siteId, instanceId),
@@ -211,4 +213,14 @@ export const getAssistantTools = (
     messagesTool(siteId),
     reportTool(siteId, userId ?? ''),
   ];
+
+  if (agentType === 'gear') {
+    tools.push(
+      instanceProjectTool(userId ?? ''),
+      createAccountTool(),
+      verifyAccountTool()
+    );
+  }
+
+  return tools;
 };
