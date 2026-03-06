@@ -3,7 +3,6 @@
 import { WhatsAppSendService } from '@/lib/services/whatsapp/WhatsAppSendService';
 import { formatMarkdownForWhatsApp } from '@/lib/utils/whatsapp-formatter';
 import { supabaseAdmin } from '@/lib/database/supabase-client';
-import crypto from 'crypto';
 import { executeAssistant } from '@/lib/services/robot-instance/assistant-executor';
 import { createAccountTool, verifyAccountTool } from './tools';
 import { instanceProjectTool } from '@/app/api/agents/tools/instance_project/assistantProtocol';
@@ -23,46 +22,8 @@ export async function processUnregisteredUserStep(
   'use step';
   
   try {
-    // 1. Save visitor, conversation and message
-    const visitorIdHash = crypto
-      .createHash('md5')
-      .update(`whatsapp:${phoneNumber}:${businessAccountId}`)
-      .digest('hex');
-    
-    // Generar un UUID válido v4 determinístico (o simplemente aleatorio si determinístico es complicado en vanilla JS).
-    // Usamos el hash para crear un UUID v4 pseudo-aleatorio o simplemente dejamos que DB lo genere si es UUID.
-    // Ojo: Si la DB requiere UUID, `whatsapp_hash` fallará.
-    // Mejor formato de UUID v4 basado en el hash:
-    const visitorId = [
-      visitorIdHash.substring(0, 8),
-      visitorIdHash.substring(8, 12),
-      '4' + visitorIdHash.substring(13, 16),
-      '8' + visitorIdHash.substring(17, 20),
-      visitorIdHash.substring(20, 32)
-    ].join('-');
-    
-    console.log(`[GearAgent] Using visitor UUID: ${visitorId}`);
-
-    // Check if visitor exists
-    const { data: existingVisitor, error: visitorError } = await supabaseAdmin
-      .from('visitors')
-      .select('id')
-      .eq('id', visitorId)
-      .maybeSingle();
-      
-    if (!existingVisitor) {
-      const { error: insertError } = await supabaseAdmin.from('visitors').insert([{
-        id: visitorId,
-        site_id: siteId,
-        source: 'whatsapp',
-        platform: 'mobile',
-        custom_data: { whatsapp_phone: phoneNumber, business_account_id: businessAccountId }
-      }]);
-      
-      if (insertError) {
-        console.error('❌ Error creating visitor:', insertError);
-      }
-    }
+    // Ya no creamos ni buscamos visitorId. 
+    // Vamos directo a Get or create lead.
 
     // Get or create lead
     let leadId: string | null = null;
@@ -90,7 +51,7 @@ export async function processUnregisteredUserStep(
           .insert([{
             site_id: siteId,
             user_id: siteData.user_id,
-            email: '', // Required by schema
+            email: `${phoneNorm}@whatsapp.lead`, // Provide a mock email if required by schema but usually phone is enough if we handle it
             phone: phoneNorm,
             origin: 'whatsapp',
             status: 'new',
@@ -103,18 +64,20 @@ export async function processUnregisteredUserStep(
           leadId = newLead.id;
         } else {
           console.error('❌ Error creating lead:', leadError);
+          throw leadError; // Throw if lead fails because conversation might need it
         }
       } else {
         console.error('❌ Error creating lead: Site not found');
+        throw new Error('Site not found for creating lead');
       }
     }
 
-    // Get or create conversation
+    // Get or create conversation (usando lead_id)
     let convId: string;
     const { data: existingConversation } = await supabaseAdmin
       .from('conversations')
       .select('id')
-      .eq('visitor_id', visitorId)
+      .eq('lead_id', leadId)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -124,13 +87,12 @@ export async function processUnregisteredUserStep(
       convId = existingConversation.id;
     } else {
       const convData: any = {
-        visitor_id: visitorId,
+        lead_id: leadId,
         site_id: siteId,
         status: 'active',
         title: `Gear Lead WhatsApp: ${phoneNumber.substring(0, 5)}***`,
         custom_data: { source: 'whatsapp', whatsapp_phone: phoneNumber, business_account_id: businessAccountId }
       };
-      if (leadId) convData.lead_id = leadId;
 
       const { data: newConversation, error: convError } = await supabaseAdmin
         .from('conversations')
@@ -140,18 +102,15 @@ export async function processUnregisteredUserStep(
         
       if (convError) {
         console.error('❌ Error creating conversation:', convError);
-        // Fallback for conversation ID if it fails (not ideal but prevents complete crash)
-        // Usually means missing visitor or lead
         throw convError;
       }
       
       convId = newConversation!.id;
     }
     
-    // Save the user message
+    // Save the user message (sin visitor_id)
     const { error: msgError } = await supabaseAdmin.from('messages').insert([{
       conversation_id: convId,
-      visitor_id: visitorId,
       content: messageContent,
       role: 'user',
       custom_data: { source: 'whatsapp', whatsapp_message_id: waMessageId, whatsapp_phone: phoneNumber }
