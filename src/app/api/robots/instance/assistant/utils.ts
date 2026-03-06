@@ -39,7 +39,10 @@ import { whatsappTemplateTool } from '@/app/api/agents/tools/whatsappTemplate/as
 import { conversationsTool } from '@/app/api/agents/tools/conversations/assistantProtocol';
 import { messagesTool } from '@/app/api/agents/tools/messages/assistantProtocol';
 import { reportTool } from '@/app/api/agents/tools/report/assistantProtocol';
-import { instanceProjectTool, createAccountTool, verifyAccountTool } from '@/app/api/agents/gear/whatsapp/tools';
+import { createAccountTool, verifyAccountTool } from '@/app/api/agents/gear/whatsapp/tools';
+import { instanceProjectTool } from '@/app/api/agents/tools/instance_project/assistantProtocol';
+
+import { normalizePhoneForStorage } from '@/lib/utils/phone-normalizer';
 
 /**
  * Fetch relevant memories for assistant context (site_id, user_id, instance_id)
@@ -174,7 +177,8 @@ export const getAssistantTools = (
   userId: string | undefined,
   instanceId: string,
   customTools: any[] = [],
-  agentType?: string
+  agentType?: string,
+  userPhone?: string
 ) => {
   const tools = [
     ...customTools,
@@ -215,8 +219,9 @@ export const getAssistantTools = (
   ];
 
   if (agentType === 'gear') {
+    const normalizedPhone = userPhone ? normalizePhoneForStorage(userPhone) || userPhone : undefined;
     tools.push(
-      instanceProjectTool(userId ?? ''),
+      instanceProjectTool(userId ?? '', normalizedPhone),
       createAccountTool(),
       verifyAccountTool()
     );

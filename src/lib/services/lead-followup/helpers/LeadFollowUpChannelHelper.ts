@@ -194,7 +194,7 @@ export async function getSiteChannelsConfiguration(siteId: string): Promise<{
     }
     
     // 2. Agent Email (New)
-    const agentEmailConfig = channels.agent_email;
+    const agentEmailConfig = channels.agent_email || channels.agent_mail || channels.agent;
     console.log(`📧 Checking agent_email config:`, {
       exists: !!agentEmailConfig,
       status: agentEmailConfig?.status,
@@ -205,7 +205,7 @@ export async function getSiteChannelsConfiguration(siteId: string): Promise<{
       dataDomain: agentEmailConfig?.data?.domain
     });
     
-    const isAgentEmailActive = agentEmailConfig && String(agentEmailConfig.status) === 'active';
+    const isAgentEmailActive = agentEmailConfig && (String(agentEmailConfig.status) === 'active' || String(agentEmailConfig.status) === 'synced') && agentEmailConfig.enabled !== false;
     console.log(`📧 Agent email active check:`, {
       hasConfig: !!agentEmailConfig,
       status: agentEmailConfig?.status,

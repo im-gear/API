@@ -12,7 +12,8 @@ export async function runAssistantWorkflow(
   customTools: any[],
   useSdkTools: boolean,
   systemPrompt?: string,
-  agentType?: string
+  agentType?: string,
+  userPhone?: string
 ) {
   'use workflow';
   
@@ -25,7 +26,8 @@ export async function runAssistantWorkflow(
     customTools,
     useSdkTools,
     systemPrompt,
-    agentType
+    agentType,
+    userPhone
   );
 
   let isDone = false;

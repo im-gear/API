@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     let siteId: string | null = null;
     let userId: string | null = null;
     let systemPromptOverride: string | undefined = undefined;
+    let needsProjectSelection = false;
 
     if (user) {
       userId = user.id;
@@ -100,7 +101,6 @@ export async function POST(request: NextRequest) {
       
       if (memberSites) {
         memberSites.forEach(member => {
-          // Asegurarnos de que sites existe y tiene los campos esperados
           const siteData: any = member.sites;
           if (siteData && siteData.id) {
             allSites.set(siteData.id, { id: siteData.id, name: siteData.name });
@@ -110,30 +110,45 @@ export async function POST(request: NextRequest) {
 
       const availableSites = Array.from(allSites.values());
 
-      // Si el usuario ya seleccionó un sitio activo
-      if (user.metadata?.active_target_site_id) {
+      // Verificar tabla remote_sessions
+      const { data: session } = await supabaseAdmin
+        .from('remote_sessions')
+        .select('site_id')
+        .eq('phone_number', phoneNumber)
+        .maybeSingle();
+
+      if (session && session.site_id) {
         // Validamos que el sitio seleccionado aún sea de su propiedad o sea miembro
-        const hasAccess = availableSites.some(s => s.id === user.metadata!.active_target_site_id);
+        const hasAccess = availableSites.some(s => s.id === session.site_id);
         if (hasAccess) {
-          siteId = user.metadata.active_target_site_id;
-          console.log(`✅ [Gear] Usando sitio activo seleccionado: ${siteId}`);
+          siteId = session.site_id;
+          console.log(`✅ [Gear] Usando sitio activo de remote_sessions: ${siteId}`);
         }
       } 
       
-      // Si no hay sitio activo seleccionado, determinamos basado en sus sitios disponibles
+      // Si no hay sesión remota, determinamos basado en sus sitios disponibles
       if (!siteId && availableSites.length > 0) {
         if (availableSites.length === 1) {
           siteId = availableSites[0].id;
           console.log(`✅ [Gear] Usando único sitio del usuario: ${siteId}`);
+          
+          // Guardar automáticamente en remote_sessions
+          await supabaseAdmin.from('remote_sessions').upsert({
+            phone_number: phoneNumber,
+            user_id: userId,
+            site_id: siteId
+          }, { onConflict: 'phone_number' });
+          
         } else if (availableSites.length > 1) {
           // El usuario tiene varios sitios, debe elegir uno.
-          siteId = availableSites[0].id; 
-          systemPromptOverride = "You are Makinari's Gear Assistant. The user has multiple projects but hasn't selected an active one. You MUST use the instance_project tool with action='list' to show them their projects and ask which one they want to manage. Do not perform any changes until they select a project.";
-          console.log(`⚠️ [Gear] Usuario con múltiples sitios sin seleccionar. Forzando tool para elegir.`);
+          needsProjectSelection = true;
+          systemPromptOverride = "You are Makinari's Gear Assistant. The user has multiple projects but hasn't selected an active one. If you haven't showed them their projects yet, use the instance_project tool with action='list' to get their projects and ask which one they want to manage. If they reply indicating which project they want to use, use the instance_project tool with action='set' and the corresponding site_id to set it. Do not perform any other changes until they select a project.";
+          console.log(`⚠️ [Gear] Usuario con múltiples sitios sin seleccionar. Necesita elegir.`);
         }
       } else if (!siteId) {
         // El usuario está registrado pero no tiene ningún sitio creado
-        systemPromptOverride = "You are Makinari's Gear Assistant. The user is registered but has no projects yet. Ask them if they want to create a new project.";
+        needsProjectSelection = true;
+        systemPromptOverride = "You are Makinari's Gear Assistant. The user is registered but has no projects yet. Politely tell them they need to log in to the web app to create their first project. You cannot create a project for them from here.";
         console.log(`⚠️ [Gear] Usuario registrado sin sitios.`);
       }
     } else {
@@ -195,18 +210,19 @@ export async function POST(request: NextRequest) {
     // Añadimos instrucción de formato para WhatsApp
     systemPromptOverride += `\n\nIMPORTANT FORMATTING RULE: You are talking to a user via WhatsApp. You MUST format your responses using WhatsApp formatting: *bold*, _italic_, ~strikethrough~, and \`\`\`code\`\`\`. Avoid markdown headers like # and markdown links like [text](url). Use bullet points like - item.`;
     
-    // 3. Trigger Unregistered Workflow si no hay usuario
-    if (!userId) {
-      console.log(`🚀 Iniciando unregistered GearAgent workflow para ${phoneNumber}...`);
+    // 3. Trigger Unregistered Workflow si no hay usuario o necesita seleccionar proyecto
+    if (!userId || needsProjectSelection) {
+      console.log(`🚀 Iniciando unregistered GearAgent workflow (o Lobby) para ${phoneNumber}...`);
       await start(runUnregisteredGearAgentWorkflow, [{
         message: messageContent,
         messageSid,
         siteId,
         userPhone: rawPhoneNumber,
         businessAccountId,
-        systemPrompt: systemPromptOverride
+        systemPrompt: systemPromptOverride,
+        userId: userId // Pasamos el userId por si necesita usar tools de usuario registrado
       }]);
-      console.log('✅ Unregistered Workflow iniciado');
+      console.log('✅ Unregistered/Lobby Workflow iniciado');
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
@@ -258,6 +274,22 @@ export async function POST(request: NextRequest) {
       console.error('❌ No se pudo obtener/crear una instancia');
       return NextResponse.json({ success: true });
     }
+    
+    // 4.5. INSERTAR MENSAJE DEL USUARIO EN instance_logs ANTES DE INICIAR EL WORKFLOW
+    // Esto es crucial para que el workflow.ts encuentre el historial y el contexto de qué responder.
+    await supabaseAdmin.from('instance_logs').insert({
+      log_type: 'user_action',
+      level: 'info',
+      message: messageContent,
+      details: {
+        prompt_source: 'whatsapp_webhook',
+        message_sid: messageSid
+      },
+      instance_id: instanceId,
+      site_id: siteId,
+      user_id: userId,
+    });
+    console.log(`📝 Log de mensaje de usuario insertado en instance_logs para instancia ${instanceId}`);
     
     // Trigger Workflow normal
     console.log(`🚀 Iniciando workflow GearAgent normal para ${phoneNumber}...`);

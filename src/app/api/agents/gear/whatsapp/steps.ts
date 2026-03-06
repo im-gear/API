@@ -6,6 +6,7 @@ import { supabaseAdmin } from '@/lib/database/supabase-client';
 import crypto from 'crypto';
 import { executeAssistant } from '@/lib/services/robot-instance/assistant-executor';
 import { createAccountTool, verifyAccountTool } from './tools';
+import { instanceProjectTool } from '@/app/api/agents/tools/instance_project/assistantProtocol';
 import { normalizePhoneForStorage } from '@/lib/utils/phone-normalizer';
 
 import { OpenAIAgentExecutor } from '@/lib/custom-automation/openai-agent-executor';
@@ -16,7 +17,8 @@ export async function processUnregisteredUserStep(
   businessAccountId: string,
   waMessageId: string | undefined,
   siteId: string,
-  systemPrompt: string
+  systemPrompt: string,
+  userId?: string | null
 ) {
   'use step';
   
@@ -154,6 +156,10 @@ export async function processUnregisteredUserStep(
 
     // 2. Run the assistant using OpenAIAgentExecutor
     const customTools = [createAccountTool(), verifyAccountTool()];
+    if (userId) {
+      const normalizedForTool = normalizePhoneForStorage(phoneNumber) || phoneNumber.trim();
+      customTools.push(instanceProjectTool(userId, normalizedForTool));
+    }
     const executor = new OpenAIAgentExecutor();
     
     const executionResult = await executor.act({

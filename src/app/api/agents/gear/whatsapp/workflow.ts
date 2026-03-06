@@ -48,7 +48,8 @@ export async function runGearAgentWorkflow({
       customTools,
       useSdkTools,
       systemPrompt,
-      'gear'
+      'gear',
+      userPhone
     );
 
     console.log(`[GearAgent] Assistant execution completed. Response length: ${result.assistant_response?.length || 0}`);
@@ -82,7 +83,8 @@ export async function runUnregisteredGearAgentWorkflow({
   siteId,
   userPhone,
   businessAccountId,
-  systemPrompt
+  systemPrompt,
+  userId
 }: {
   message: string;
   messageSid?: string;
@@ -90,13 +92,14 @@ export async function runUnregisteredGearAgentWorkflow({
   userPhone: string;
   businessAccountId: string;
   systemPrompt: string;
+  userId?: string | null;
 }) {
   'use workflow';
   
   // We need to import the step locally or it's already at top of file? No we'll import it at the top
   const { processUnregisteredUserStep } = await import('./steps');
 
-  console.log(`[GearAgent] Starting unregistered workflow for ${userPhone}`);
+  console.log(`[GearAgent] Starting unregistered/lobby workflow for ${userPhone}`);
 
   try {
     if (messageSid) {
@@ -110,7 +113,8 @@ export async function runUnregisteredGearAgentWorkflow({
       businessAccountId,
       messageSid,
       siteId,
-      systemPrompt
+      systemPrompt,
+      userId
     );
 
     if (assistantResponse) {

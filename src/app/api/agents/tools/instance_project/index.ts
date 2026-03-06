@@ -1,0 +1,1 @@
+export { instanceProjectTool } from './assistantProtocol';
