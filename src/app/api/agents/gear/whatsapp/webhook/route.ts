@@ -174,10 +174,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Fallback: Makinari por defecto (entorno)
-    // SOLO usamos el fallback si vamos a interactuar con alguien no registrado para ofrecerle el registro
+    // SOLO usamos el fallback si vamos a interactuar con alguien no registrado para ofrecerle el registro o alguien en lobby
     if (!siteId && process.env.GEAR_SITE_ID) {
       siteId = process.env.GEAR_SITE_ID;
-      console.log(`✅ [Gear] Usando site_id de Makinari (GEAR_SITE_ID) como contexto genérico: ${siteId}`);
+      console.log(`✅ [Gear] Usando site_id de Makinari (GEAR_SITE_ID) como contexto genérico/lobby: ${siteId}`);
     }
     
     // Fallback final: Buscar un sitio de Makinari por nombre
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
         
       if (siteByName) {
         siteId = siteByName.id;
-        console.log(`⚠️ [Gear] Usando site_id por nombre "Makinari" como contexto genérico: ${siteId}`);
+        console.log(`⚠️ [Gear] Usando site_id por nombre "Makinari" como contexto genérico/lobby: ${siteId}`);
       }
     }
     

@@ -25,12 +25,24 @@ export async function processUnregisteredUserStep(
   try {
     // 1. Save visitor, conversation and message
     const visitorIdHash = crypto
-      .createHash('sha256')
+      .createHash('md5')
       .update(`whatsapp:${phoneNumber}:${businessAccountId}`)
       .digest('hex');
     
-    const visitorId = `whatsapp_${visitorIdHash.substring(0, 16)}`;
+    // Generar un UUID válido v4 determinístico (o simplemente aleatorio si determinístico es complicado en vanilla JS).
+    // Usamos el hash para crear un UUID v4 pseudo-aleatorio o simplemente dejamos que DB lo genere si es UUID.
+    // Ojo: Si la DB requiere UUID, `whatsapp_hash` fallará.
+    // Mejor formato de UUID v4 basado en el hash:
+    const visitorId = [
+      visitorIdHash.substring(0, 8),
+      visitorIdHash.substring(8, 12),
+      '4' + visitorIdHash.substring(13, 16),
+      '8' + visitorIdHash.substring(17, 20),
+      visitorIdHash.substring(20, 32)
+    ].join('-');
     
+    console.log(`[GearAgent] Using visitor UUID: ${visitorId}`);
+
     // Check if visitor exists
     const { data: existingVisitor, error: visitorError } = await supabaseAdmin
       .from('visitors')
@@ -39,13 +51,17 @@ export async function processUnregisteredUserStep(
       .maybeSingle();
       
     if (!existingVisitor) {
-      await supabaseAdmin.from('visitors').insert([{
+      const { error: insertError } = await supabaseAdmin.from('visitors').insert([{
         id: visitorId,
         site_id: siteId,
         source: 'whatsapp',
         platform: 'mobile',
         custom_data: { whatsapp_phone: phoneNumber, business_account_id: businessAccountId }
       }]);
+      
+      if (insertError) {
+        console.error('❌ Error creating visitor:', insertError);
+      }
     }
 
     // Get or create lead
@@ -124,6 +140,8 @@ export async function processUnregisteredUserStep(
         
       if (convError) {
         console.error('❌ Error creating conversation:', convError);
+        // Fallback for conversation ID if it fails (not ideal but prevents complete crash)
+        // Usually means missing visitor or lead
         throw convError;
       }
       
