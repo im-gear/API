@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
 
     let siteId: string | null = null;
     let userId: string | null = null;
+    let instanceId: string | null = null;
     let systemPromptOverride: string | undefined = undefined;
     let needsProjectSelection = false;
 
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
       // Verificar tabla remote_sessions
       const { data: session } = await supabaseAdmin
         .from('remote_sessions')
-        .select('site_id')
+        .select('site_id, instance_id')
         .eq('phone_number', phoneNumber)
         .maybeSingle();
 
@@ -149,6 +150,9 @@ export async function POST(request: NextRequest) {
         const hasAccess = availableSites.some(s => s.id === session.site_id);
         if (hasAccess) {
           siteId = session.site_id;
+          if (session.instance_id) {
+            instanceId = session.instance_id;
+          }
           console.log(`✅ [Gear] Usando sitio activo de remote_sessions: ${siteId}`);
         }
       } 
@@ -160,10 +164,12 @@ export async function POST(request: NextRequest) {
           console.log(`✅ [Gear] Usando único sitio del usuario: ${siteId}`);
           
           // Guardar automáticamente en remote_sessions
+          // Si recién le asignamos su único sitio, limpiamos la instancia por si acaso había basura.
           await supabaseAdmin.from('remote_sessions').upsert({
             phone_number: phoneNumber,
             user_id: userId,
-            site_id: siteId
+            site_id: siteId,
+            instance_id: null
           }, { onConflict: 'phone_number' });
           
         } else if (availableSites.length > 1) {
@@ -254,7 +260,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Si hay usuario, crear/recuperar instancia y disparar el Workflow normal
-    let instanceId: string | null = null;
+    // instanceId ya podría estar definido desde remote_sessions
     
     // Necesitamos que cada visitante de un mismo sitio tenga su propia instancia
     // para que las conversaciones no se mezclen. Por lo tanto, agregamos el phoneNumber
@@ -262,38 +268,95 @@ export async function POST(request: NextRequest) {
     
     const instanceIdentifier = `Gear Assistant - ${phoneNumber}`;
     
-    const { data: instances } = await supabaseAdmin
-      .from('remote_instances')
-      .select('id')
-      .eq('site_id', siteId)
-      .eq('user_id', userId)
-      .eq('name', instanceIdentifier)
-      .neq('status', 'destroyed') // Find existing active instances (running, uninstantiated, etc.)
-      .neq('status', 'deleted')
-      .order('created_at', { ascending: false })
-      .limit(1);
-      
-    if (instances && instances.length > 0) {
-      instanceId = instances[0].id;
-      console.log(`✅ Usando instancia existente para ${phoneNumber}: ${instanceId}`);
-    } else {
-      console.log(`🆕 Creando nueva instancia de Gear para el teléfono ${phoneNumber}`);
-      const { data: newInstance } = await supabaseAdmin
+    if (!instanceId) {
+      // Fallback: Buscar instancia existente por nombre
+      const { data: instances } = await supabaseAdmin
         .from('remote_instances')
-        .insert({
-          site_id: siteId,
-          user_id: userId,
-          name: instanceIdentifier,
-          instance_type: 'ubuntu',
-          status: 'uninstantiated',
-          created_by: userId
-        })
         .select('id')
+        .eq('site_id', siteId)
+        .eq('user_id', userId)
+        .eq('name', instanceIdentifier)
+        .neq('status', 'destroyed') // Find existing active instances (running, uninstantiated, etc.)
+        .neq('status', 'deleted')
+        .order('created_at', { ascending: false })
+        .limit(1);
+        
+      if (instances && instances.length > 0) {
+        instanceId = instances[0].id;
+        console.log(`✅ Usando instancia existente (fallback por nombre) para ${phoneNumber}: ${instanceId}`);
+        
+        // Actualizar la sesión para no tener que buscar por nombre la próxima vez
+        await supabaseAdmin.from('remote_sessions').upsert({
+          phone_number: phoneNumber,
+          user_id: userId,
+          site_id: siteId,
+          instance_id: instanceId
+        }, { onConflict: 'phone_number' });
+        
+      } else {
+        console.log(`🆕 Creando nueva instancia de Gear para el teléfono ${phoneNumber}`);
+        const { data: newInstance } = await supabaseAdmin
+          .from('remote_instances')
+          .insert({
+            site_id: siteId,
+            user_id: userId,
+            name: instanceIdentifier,
+            instance_type: 'ubuntu',
+            status: 'uninstantiated',
+            created_by: userId
+          })
+          .select('id')
+          .single();
+          
+        if (newInstance) {
+          instanceId = newInstance.id;
+          console.log(`✅ Nueva instancia creada: ${instanceId}`);
+          
+          // Guardar el instance_id en la sesión para futuras consultas
+          await supabaseAdmin.from('remote_sessions').upsert({
+            phone_number: phoneNumber,
+            user_id: userId,
+            site_id: siteId,
+            instance_id: instanceId
+          }, { onConflict: 'phone_number' });
+        }
+      }
+    } else {
+      console.log(`✅ Usando instancia de remote_sessions para ${phoneNumber}: ${instanceId}`);
+      
+      // Opcional: Podrías validar que la instancia exista y no esté eliminada/destruida.
+      const { data: instStatus } = await supabaseAdmin
+        .from('remote_instances')
+        .select('status')
+        .eq('id', instanceId)
         .single();
         
-      if (newInstance) {
-        instanceId = newInstance.id;
-        console.log(`✅ Nueva instancia creada: ${instanceId}`);
+      if (!instStatus || instStatus.status === 'destroyed' || instStatus.status === 'deleted') {
+         console.log(`⚠️ La instancia guardada estaba destruida o no existe. Creando una nueva...`);
+         const { data: newInstance } = await supabaseAdmin
+          .from('remote_instances')
+          .insert({
+            site_id: siteId,
+            user_id: userId,
+            name: instanceIdentifier,
+            instance_type: 'ubuntu',
+            status: 'uninstantiated',
+            created_by: userId
+          })
+          .select('id')
+          .single();
+          
+        if (newInstance) {
+          instanceId = newInstance.id;
+          console.log(`✅ Nueva instancia creada tras reemplazo: ${instanceId}`);
+          
+          await supabaseAdmin.from('remote_sessions').upsert({
+            phone_number: phoneNumber,
+            user_id: userId,
+            site_id: siteId,
+            instance_id: instanceId
+          }, { onConflict: 'phone_number' });
+        }
       }
     }
     

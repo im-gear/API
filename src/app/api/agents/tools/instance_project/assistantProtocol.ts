@@ -100,10 +100,12 @@ export function instanceProjectTool(userId?: string | null, phone?: string) {
           }
 
           // Upsert en remote_sessions
+          // Si cambian de proyecto, limpiamos el instance_id para que se genere uno nuevo con el contexto correcto
           const { error } = await supabaseAdmin.from('remote_sessions').upsert({
             phone_number: phone,
             user_id: userId,
-            site_id: site_id
+            site_id: site_id,
+            instance_id: null
           }, { onConflict: 'phone_number' });
 
           if (error) {
