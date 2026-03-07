@@ -1,0 +1,53 @@
+---
+title: System Notification
+description: Send notifications to team members.
+---
+
+# System Notification Tool
+
+The `system_notification` tool allows you to list team members or send notifications to them. The tool supports two actions:
+
+1. **list**: Retrieves all team members for the site, helping you determine who to notify and providing their email addresses.
+2. **notify**: Sends a notification to a specific team member. The tool will automatically use the best channel available based on the member's profile:
+   - **WhatsApp**: If the team member has a registered phone number, they will receive a WhatsApp message via the Gear channel.
+   - **In-app and Email**: If no phone number is present, the system defaults to sending an in-app system notification alongside an email.
+
+This is especially useful for finding team members, escalating issues, alerting agents of required interventions, or notifying owners of requirement updates.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+| :--- | :--- | :---: | :--- |
+| `action` | string | Yes | The action to perform: `list` to get team members, or `notify` to send a message. |
+| `team_member_email` | string | Yes* | The email address of the team member to notify. *(Required when action is "notify")* |
+| `instance_id` | string | Yes* | The instance ID related to this notification. *(Required when action is "notify")* |
+| `title` | string | Yes* | The title of the notification or message subject. *(Required when action is "notify")* |
+| `message` | string | Yes* | The detailed content of the notification. *(Required when action is "notify")* |
+
+## Usage Examples
+
+### Listing Team Members
+
+```json
+{
+  "name": "system_notification",
+  "arguments": {
+    "action": "list"
+  }
+}
+```
+
+### Sending a Notification
+
+```json
+{
+  "name": "system_notification",
+  "arguments": {
+    "action": "notify",
+    "team_member_email": "admin@example.com",
+    "instance_id": "inst_01ABCDEF",
+    "title": "Urgent: Review Required",
+    "message": "A new design requirement has been submitted and needs your immediate review."
+  }
+}
+```

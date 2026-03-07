@@ -118,8 +118,16 @@ export class TeamNotificationService {
       // Obtener los IDs de usuario únicos
       const userIds = Array.from(allUsers.keys());
       
-      // Obtener información de los usuarios de auth.users
-      const { data: authUsers, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
+      // Obtener información de los usuarios usando getUserById para evitar límite de 50 usuarios
+      const authUsers = { users: [] as any[] };
+      for (const id of userIds) {
+        const { data: userAuth, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(id);
+        if (userAuth?.user && !authUserError) {
+          authUsers.users.push(userAuth.user);
+        }
+      }
+      
+      const authUsersError = null;
       
       if (authUsersError) {
         console.error('Error al obtener usuarios de auth:', authUsersError);

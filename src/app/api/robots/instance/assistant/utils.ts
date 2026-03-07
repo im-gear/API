@@ -41,6 +41,8 @@ import { messagesTool } from '@/app/api/agents/tools/messages/assistantProtocol'
 import { reportTool } from '@/app/api/agents/tools/report/assistantProtocol';
 import { createAccountTool, verifyAccountTool } from '@/app/api/agents/gear/whatsapp/tools';
 import { instanceProjectTool } from '@/app/api/agents/tools/instance_project/assistantProtocol';
+import { systemNotificationTool } from '@/app/api/agents/tools/system_notification/assistantProtocol';
+import { requirementStatusTool } from '@/app/api/agents/tools/requirement_status/assistantProtocol';
 
 import { normalizePhoneForStorage } from '@/lib/utils/phone-normalizer';
 
@@ -216,6 +218,8 @@ export const getAssistantTools = (
     conversationsTool(siteId, userId),
     messagesTool(siteId),
     reportTool(siteId, userId ?? ''),
+    systemNotificationTool(siteId),
+    requirementStatusTool(siteId),
   ];
 
   if (agentType === 'gear') {
