@@ -5,16 +5,16 @@ import { z } from 'zod';
 const CreateDealSchema = z.object({
   site_id: z.string().uuid(),
   name: z.string(),
-  description: z.string().optional(),
   amount: z.number().optional(),
   currency: z.string().optional(),
-  stage: z.enum(['discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost']).optional(),
-  status: z.enum(['open', 'won', 'lost', 'abandoned']).optional(),
-  qualification_tier: z.enum(['unqualified', 'exploratory', 'startup', 'smb', 'enterprise']).optional(),
-  qualification_score: z.number().min(0).max(100).optional(),
-  qualification_details: z.record(z.unknown()).optional(),
-  sales_id: z.string().uuid().optional(),
-  expected_close_date: z.string().datetime().optional(),
+  stage: z.string().optional().default('prospecting'),
+  status: z.string().optional().default('open'),
+  company_id: z.string().uuid().optional(),
+  expected_close_date: z.string().optional(),
+  notes: z.string().optional(),
+  qualification_score: z.number().optional(),
+  qualification_criteria: z.record(z.unknown()).optional(),
+  sales_order_id: z.string().uuid().optional(),
   lead_ids: z.array(z.string().uuid()).optional(),
   owner_ids: z.array(z.string().uuid()).optional(),
 });
@@ -42,8 +42,7 @@ export async function POST(request: NextRequest) {
     if (lead_ids && lead_ids.length > 0) {
       const dealLeads = lead_ids.map(lead_id => ({
         deal_id: deal.id,
-        lead_id,
-        site_id
+        lead_id
       }));
       await supabaseAdmin.from('deal_leads').insert(dealLeads);
     }
@@ -51,8 +50,7 @@ export async function POST(request: NextRequest) {
     if (owner_ids && owner_ids.length > 0) {
       const dealOwners = owner_ids.map(user_id => ({
         deal_id: deal.id,
-        user_id,
-        site_id
+        user_id
       }));
       await supabaseAdmin.from('deal_owners').insert(dealOwners);
     }

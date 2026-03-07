@@ -16,16 +16,16 @@ export interface DealsToolParams {
   deal_id?: string;
   site_id?: string;
   name?: string;
-  description?: string;
   amount?: number;
   currency?: string;
-  stage?: 'discovery' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
-  status?: 'open' | 'won' | 'lost' | 'abandoned';
-  qualification_tier?: 'unqualified' | 'exploratory' | 'startup' | 'smb' | 'enterprise';
-  qualification_score?: number;
-  qualification_details?: Record<string, unknown>;
-  sales_id?: string;
+  stage?: string;
+  status?: string;
+  company_id?: string;
   expected_close_date?: string;
+  notes?: string;
+  qualification_score?: number;
+  qualification_criteria?: Record<string, unknown>;
+  sales_order_id?: string;
   lead_ids?: string[];
   owner_ids?: string[];
 
@@ -53,28 +53,22 @@ export function dealsTool(current_site_id?: string) {
         deal_id: { type: 'string', description: 'Deal UUID (required for update/delete)' },
         site_id: { type: 'string', description: 'Site UUID' },
         name: { type: 'string', description: 'Deal name (required for create)' },
-        description: { type: 'string', description: 'Deal description' },
         amount: { type: 'number', description: 'Deal amount' },
         currency: { type: 'string', description: 'Currency code (e.g. USD)' },
         stage: { 
           type: 'string', 
-          enum: ['discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost'],
-          description: 'Deal stage in the sales pipeline'
+          description: 'Deal stage in the sales pipeline (e.g. prospecting, proposal, negotiation, closed_won)'
         },
         status: {
           type: 'string',
-          enum: ['open', 'won', 'lost', 'abandoned'],
-          description: 'Overall deal status'
+          description: 'Overall deal status (e.g. open, won, lost)'
         },
-        qualification_tier: {
-          type: 'string',
-          enum: ['unqualified', 'exploratory', 'startup', 'smb', 'enterprise'],
-          description: 'Tier of qualification'
-        },
-        qualification_score: { type: 'number', description: 'Score from 0 to 100' },
-        qualification_details: { type: 'object', description: 'JSON object with qualification specifics (e.g. BANT)' },
-        sales_id: { type: 'string', description: 'Related Sale/Order UUID if closed' },
-        expected_close_date: { type: 'string', description: 'ISO Date string for expected close' },
+        company_id: { type: 'string', description: 'Company UUID' },
+        expected_close_date: { type: 'string', description: 'Date string for expected close (YYYY-MM-DD)' },
+        notes: { type: 'string', description: 'Deal notes' },
+        qualification_score: { type: 'number', description: 'Qualification score' },
+        qualification_criteria: { type: 'object', description: 'JSON object with qualification specifics' },
+        sales_order_id: { type: 'string', description: 'Related Sale/Order UUID if closed' },
         lead_ids: {
           type: 'array',
           items: { type: 'string' },
