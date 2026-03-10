@@ -56,6 +56,26 @@ export function createProjectTool(userId?: string | null) {
           };
         }
 
+        // Trigger initializeProject / site setup automatically for the new site
+        try {
+          const baseUrl = process.env.API_URL || 'http://localhost:3000';
+          await fetch(`${baseUrl}/api/site/setup`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              site_id: siteId,
+              user_id: userId,
+              setup_type: 'basic'
+            })
+          });
+          console.log(`[CreateProjectTool] Triggered site setup (initialize project) for ${siteId}`);
+        } catch (setupErr) {
+          console.error(`[CreateProjectTool] Failed to trigger site setup:`, setupErr);
+          // Don't fail the tool execution if setup triggering fails
+        }
+
         return {
           success: true,
           message: `Project '${args.name}' created successfully with ID ${siteId}.`,
