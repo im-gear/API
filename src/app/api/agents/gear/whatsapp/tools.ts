@@ -7,7 +7,7 @@ export function createAccountTool() {
   const execute = async (args: { email: string, password?: string, name?: string, phone?: string }) => {
     try {
       // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      const attributes: any = {
         email: args.email,
         password: args.password || Math.random().toString(36).slice(-8) + "Aa1!", // Generate random password if not provided
         email_confirm: true, // Auto confirm for now
@@ -15,7 +15,14 @@ export function createAccountTool() {
             full_name: args.name,
             phone: args.phone
         }
-      });
+      };
+
+      if (args.phone) {
+        attributes.phone = args.phone;
+        attributes.phone_confirm = true;
+      }
+
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser(attributes);
 
       if (authError) throw authError;
 
