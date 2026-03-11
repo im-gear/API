@@ -1,3 +1,5 @@
+import { listSystemNotificationCore, notifySystemNotificationCore } from './route';
+
 export function systemNotificationTool(site_id: string) {
   return {
     name: 'system_notification',
@@ -20,39 +22,32 @@ export function systemNotificationTool(site_id: string) {
       title?: string;
       message?: string;
     }) => {
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
-      const apiKey = process.env.REST_API_KEY || process.env.SERVICE_API_KEY || '';
-      
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      if (apiKey) {
-        headers['Authorization'] = `Bearer ${apiKey}`;
-        headers['x-api-key'] = apiKey;
-      }
+      const { action, ...params } = args;
 
-      const res = await fetch(`${baseUrl}/api/agents/tools/system_notification`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          ...args,
-          site_id
-        })
-      });
-
-      const text = await res.text();
-      let data;
       try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
-      }
+        if (action === 'list') {
+          const data = await listSystemNotificationCore(site_id);
+          return { success: true, data };
+        }
 
-      if (!res.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error) || 'Failed to execute system notification tool');
-      }
+        if (action === 'notify') {
+          if (!params.team_member_email || !params.message || !params.title) {
+            throw new Error('team_member_email, message, and title are required for sending notifications');
+          }
+          const data = await notifySystemNotificationCore({
+            site_id,
+            team_member_email: params.team_member_email,
+            instance_id: params.instance_id,
+            message: params.message,
+            title: params.title
+          });
+          return { success: true, data };
+        }
 
-      return data;
+        throw new Error(`Invalid action: ${action}`);
+      } catch (error: any) {
+        throw new Error(error.message || `Failed to execute system_notification tool for action ${action}`);
+      }
     }
   };
 }

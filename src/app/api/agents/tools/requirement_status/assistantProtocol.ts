@@ -1,3 +1,5 @@
+import { createRequirementStatusCore, listRequirementStatusCore } from './route';
+
 export function requirementStatusTool(site_id: string) {
   return {
     name: 'requirement_status',
@@ -24,71 +26,31 @@ export function requirementStatusTool(site_id: string) {
       status?: string;
       message?: string;
     }) => {
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
-      const apiKey = process.env.REST_API_KEY || process.env.SERVICE_API_KEY || '';
       const action = args.action || 'create';
       
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      if (apiKey) {
-        headers['Authorization'] = `Bearer ${apiKey}`;
-        headers['x-api-key'] = apiKey;
-      }
-      
-      if (action === 'create') {
-        if (!args.instance_id || !args.asset_id || !args.status) {
-          throw new Error('instance_id, asset_id, and status are required to create a requirement status');
-        }
-        
-        const res = await fetch(`${baseUrl}/api/agents/tools/requirement_status`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
+      try {
+        if (action === 'create') {
+          if (!args.instance_id || !args.asset_id || !args.status) {
+            throw new Error('instance_id, asset_id, and status are required to create a requirement status');
+          }
+          
+          const result = await createRequirementStatusCore({
             ...args,
             site_id
-          })
-        });
-
-        const text = await res.text();
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
-        }
-
-        if (!res.ok) {
-          throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error) || 'Failed to update requirement status');
-        }
-        return data;
-      } else if (action === 'list') {
-        const url = new URL(`${baseUrl}/api/agents/tools/requirement_status`);
-        url.searchParams.append('requirement_id', args.requirement_id);
-        if (args.instance_id) {
-          url.searchParams.append('instance_id', args.instance_id);
+          });
+          return result;
+        } else if (action === 'list') {
+          const result = await listRequirementStatusCore({
+            requirement_id: args.requirement_id,
+            instance_id: args.instance_id
+          });
+          return result;
         }
         
-        const res = await fetch(url.toString(), {
-          method: 'GET',
-          headers
-        });
-
-        const text = await res.text();
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
-        }
-
-        if (!res.ok) {
-          throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error) || 'Failed to list requirement status');
-        }
-        return data;
+        throw new Error(`Invalid action: ${action}`);
+      } catch (error: any) {
+        throw new Error(error.message || `Failed to execute requirement_status tool for action ${action}`);
       }
-      
-      throw new Error(`Invalid action: ${action}`);
     }
   };
 }
