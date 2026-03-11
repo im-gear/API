@@ -25,24 +25,41 @@ export function requirementStatusTool(site_id: string) {
       message?: string;
     }) => {
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const apiKey = process.env.REST_API_KEY || process.env.SERVICE_API_KEY || '';
       const action = args.action || 'create';
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        headers['x-api-key'] = apiKey;
+      }
       
       if (action === 'create') {
         if (!args.instance_id || !args.asset_id || !args.status) {
           throw new Error('instance_id, asset_id, and status are required to create a requirement status');
         }
+        
         const res = await fetch(`${baseUrl}/api/agents/tools/requirement_status`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             ...args,
             site_id
           })
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
+        }
+
         if (!res.ok) {
-          throw new Error(data.error || 'Failed to update requirement status');
+          throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error) || 'Failed to update requirement status');
         }
         return data;
       } else if (action === 'list') {
@@ -54,12 +71,19 @@ export function requirementStatusTool(site_id: string) {
         
         const res = await fetch(url.toString(), {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
+          headers
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
+        }
+
         if (!res.ok) {
-          throw new Error(data.error || 'Failed to list requirement status');
+          throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error) || 'Failed to list requirement status');
         }
         return data;
       }

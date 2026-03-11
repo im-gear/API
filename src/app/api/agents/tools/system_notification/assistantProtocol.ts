@@ -20,20 +20,36 @@ export function systemNotificationTool(site_id: string) {
       title?: string;
       message?: string;
     }) => {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const apiKey = process.env.REST_API_KEY || process.env.SERVICE_API_KEY || '';
       
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        headers['x-api-key'] = apiKey;
+      }
+
       const res = await fetch(`${baseUrl}/api/agents/tools/system_notification`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           ...args,
           site_id
         })
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Failed to parse response: ${text.substring(0, 100)}`);
+      }
+
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to execute system notification tool');
+        throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error) || 'Failed to execute system notification tool');
       }
 
       return data;

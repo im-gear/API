@@ -90,8 +90,13 @@ export function createMcpServer(
         });
         
         if (response.ok) {
-          const json = await response.json();
-          if (json.result) return json.result;
+          const text = await response.text();
+          try {
+            const json = JSON.parse(text);
+            if (json.result) return json.result;
+          } catch (e) {
+            console.error(`[MCP Remote] Invalid JSON from remote for tools/list:`, text.substring(0, 200));
+          }
         }
       } catch (err) {
         console.error(`[MCP Remote] Failed to proxy tools/list, falling back to local list:`, err);
@@ -153,7 +158,17 @@ export function createMcpServer(
            };
         }
         
-        const json = await response.json();
+        const responseText = await response.text();
+        let json;
+        try {
+          json = JSON.parse(responseText);
+        } catch (e) {
+          return {
+            content: [{ type: 'text', text: `Remote MCP returned invalid JSON (Status: ${response.status} ${response.statusText}):\n\n${responseText.substring(0, 500)}` }],
+            isError: true
+          };
+        }
+        
         if (json.error) {
            return {
              content: [{ type: 'text', text: json.error.message || JSON.stringify(json.error) }],
