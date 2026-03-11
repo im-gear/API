@@ -12,9 +12,13 @@ export async function createRequirementStatusCore(params: {
 }) {
   const { site_id, instance_id, asset_id, requirement_id, repo_url, status, message } = params;
 
-  if (!site_id || !instance_id || !asset_id || !requirement_id || !status) {
-    throw new Error('site_id, instance_id, asset_id, requirement_id, and status are required');
+  if (!site_id || !instance_id || !requirement_id || !status) {
+    throw new Error('site_id, instance_id, requirement_id, and status are required');
   }
+
+  // Ensure asset_id is a valid UUID if provided, otherwise default to null to avoid database errors
+  const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  const validAssetId = asset_id && isUuid(asset_id) ? asset_id : null;
 
   // Insert into requirement_progress table (or requirement_status)
   const { data, error } = await supabaseAdmin
@@ -23,7 +27,7 @@ export async function createRequirementStatusCore(params: {
       {
         site_id,
         instance_id,
-        asset_id,
+        asset_id: validAssetId,
         requirement_id,
         repo_url: repo_url || null,
         status,

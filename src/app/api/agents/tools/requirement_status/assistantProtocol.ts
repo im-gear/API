@@ -30,8 +30,8 @@ export function requirementStatusTool(site_id: string) {
       
       try {
         if (action === 'create') {
-          if (!args.instance_id || !args.asset_id || !args.status) {
-            throw new Error('instance_id, asset_id, and status are required to create a requirement status');
+          if (!args.instance_id || !args.status) {
+            throw new Error('instance_id and status are required to create a requirement status');
           }
           
           const result = await createRequirementStatusCore({
