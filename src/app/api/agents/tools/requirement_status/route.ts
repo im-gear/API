@@ -13,8 +13,8 @@ export async function createRequirementStatusCore(params: {
 }) {
   const { site_id, instance_id, asset_id, requirement_id, repo_url, preview_url, status, message } = params;
 
-  if (!site_id || !instance_id || !requirement_id || !status) {
-    throw new Error('site_id, instance_id, requirement_id, and status are required');
+  if (!site_id || !requirement_id || !status) {
+    throw new Error('site_id, requirement_id, and status are required');
   }
 
   // Ensure asset_id is a valid UUID if provided, otherwise default to null to avoid database errors
@@ -27,7 +27,7 @@ export async function createRequirementStatusCore(params: {
     .insert([
       {
         site_id,
-        instance_id,
+        instance_id: instance_id || null,
         asset_id: validAssetId,
         requirement_id,
         repo_url: repo_url || null,

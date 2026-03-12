@@ -8,7 +8,7 @@ export function requirementStatusTool(site_id: string) {
       type: 'object',
       properties: {
         action: { type: 'string', enum: ['create', 'list'], description: 'Action to perform. Default is "create"' },
-        instance_id: { type: 'string', description: 'ID of the related instance (optional for list)' },
+        instance_id: { type: 'string', description: 'ID of the related instance (optional)' },
         asset_id: { type: 'string', description: 'ID of the related asset (required for create)' },
         requirement_id: { type: 'string', description: 'ID of the requirement' },
         repo_url: { type: 'string', description: 'URL of the related repository (optional)' },
@@ -32,8 +32,8 @@ export function requirementStatusTool(site_id: string) {
       
       try {
         if (action === 'create') {
-          if (!args.instance_id || !args.status) {
-            throw new Error('instance_id and status are required to create a requirement status');
+          if (!args.status) {
+            throw new Error('status is required to create a requirement status');
           }
           
           const result = await createRequirementStatusCore({

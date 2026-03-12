@@ -46,6 +46,8 @@ import { instanceProjectTool } from '@/app/api/agents/tools/instance_project/ass
 import { createProjectTool } from '@/app/api/agents/tools/createProject/assistantProtocol';
 import { systemNotificationTool } from '@/app/api/agents/tools/system_notification/assistantProtocol';
 import { requirementStatusTool } from '@/app/api/agents/tools/requirement_status/assistantProtocol';
+import { audioToTextTool } from '@/app/api/agents/tools/audioToText/assistantProtocol';
+import { extractFramesTool } from '@/app/api/agents/tools/extractFrames/assistantProtocol';
 
 /**
  * Fetch relevant memories for assistant context (site_id, user_id, instance_id)
@@ -223,10 +225,19 @@ export const getAssistantTools = (
     systemNotificationTool(siteId),
     requirementStatusTool(siteId),
     createProjectTool(userId ?? ''),
+    audioToTextTool(siteId),
+    extractFramesTool(siteId),
   ];
 
   if (agentType === 'gear') {
-    const normalizedPhone = userPhone ? normalizePhoneForStorage(userPhone) || userPhone : undefined;
+    let normalizedPhone: string | undefined = undefined;
+    if (userPhone) {
+      if (userPhone.includes('@')) {
+        normalizedPhone = userPhone;
+      } else {
+        normalizedPhone = normalizePhoneForStorage(userPhone) || userPhone;
+      }
+    }
     tools.push(
       instanceProjectTool(userId ?? '', normalizedPhone),
       createAccountTool(),

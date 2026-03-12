@@ -68,6 +68,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract email and name from message.from field
+    // Format can be: "Name <email@example.com>" or just "email@example.com"
+    let email: string | undefined;
+    let name: string | undefined;
+
+    if (message.from) {
+      const fromMatch = message.from.match(/^(.+?)\s*<(.+?)>$|^(.+?)$/);
+      if (fromMatch) {
+        if (fromMatch[2]) {
+          // Format: "Name <email@example.com>"
+          name = fromMatch[1].trim();
+          email = fromMatch[2].trim();
+        } else if (fromMatch[3]) {
+          // Format: "email@example.com" or just the email
+          const potentialEmail = fromMatch[3].trim();
+          if (potentialEmail.includes('@')) {
+            email = potentialEmail;
+          } else {
+            name = potentialEmail;
+          }
+        }
+      }
+    }
+
+    // Check if message is intended for Gear System directly
+    if (message.inbox_id && message.inbox_id.toLowerCase() === 'gear@makinari.email') {
+      console.log(`⚙️ [AgentMail] Intercepted message for gear@makinari.email`);
+      
+      // We process the email just like a Gear WhatsApp message
+      if (!email) {
+        console.warn(`⚠️ [AgentMail] No sender email found for gear message, skipping`);
+        return NextResponse.json(
+          { success: true, message_id: message.message_id, event_type: 'message.received', skipped: 'no_sender' },
+          { status: 200 }
+        );
+      }
+
+      const { handleGearEmailWebhook } = await import('@/app/api/agents/gear/email/handler');
+      
+      // Pass the raw message payload, the extracted email and name
+      await handleGearEmailWebhook(message, email, name);
+      
+      return NextResponse.json(
+        { success: true, message_id: message.message_id, event_type: 'message.received', handled_by: 'gear' },
+        { status: 200 }
+      );
+    }
+
     // Get site_id from inbox_id or domain
     let siteId: string | undefined;
     let userId: string | undefined;
@@ -108,40 +156,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+
     // Get user_id from site if we found a site_id
-        if (siteId) {
-          const { data: site, error: siteError } = await supabaseAdmin
-            .from('sites')
-            .select('user_id')
-            .eq('id', siteId)
-            .single();
-          
-          if (!siteError && site) {
-            userId = site.user_id;
-      }
-    }
-
-    // Extract email and name from message.from field
-    // Format can be: "Name <email@example.com>" or just "email@example.com"
-    let email: string | undefined;
-    let name: string | undefined;
-
-    if (message.from) {
-      const fromMatch = message.from.match(/^(.+?)\s*<(.+?)>$|^(.+?)$/);
-      if (fromMatch) {
-        if (fromMatch[2]) {
-          // Format: "Name <email@example.com>"
-          name = fromMatch[1].trim();
-          email = fromMatch[2].trim();
-        } else if (fromMatch[3]) {
-          // Format: "email@example.com" or just the email
-          const potentialEmail = fromMatch[3].trim();
-          if (potentialEmail.includes('@')) {
-            email = potentialEmail;
-          } else {
-            name = potentialEmail;
-          }
-        }
+    if (siteId) {
+      const { data: site, error: siteError } = await supabaseAdmin
+        .from('sites')
+        .select('user_id')
+        .eq('id', siteId)
+        .single();
+      
+      if (!siteError && site) {
+        userId = site.user_id;
       }
     }
 

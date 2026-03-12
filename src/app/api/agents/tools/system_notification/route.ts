@@ -104,13 +104,31 @@ export async function notifySystemNotificationCore(params: {
       </div>
     `;
 
-    const emailResult = await sendGridService.sendEmail({
-      to: team_member_email,
-      subject: title,
-      html: htmlContent,
-      categories: ['system-notification']
-    });
-    emailSent = emailResult.success;
+    try {
+      const { AgentMailSendService } = await import('@/lib/services/email/AgentMailSendService');
+      
+      const emailResult = await AgentMailSendService.sendViaAgentMail({
+        email: team_member_email,
+        subject: title,
+        message: htmlContent, // Passed as HTML via the sendViaAgentMail service
+        site_id,
+        username: 'gear',
+        domain: 'makinari.email',
+        senderEmail: 'gear@makinari.email'
+      });
+      emailSent = emailResult.success;
+    } catch (err) {
+      console.error('Error sending system notification via AgentMail:', err);
+      // Fallback to sendGrid
+      const emailResult = await sendGridService.sendEmail({
+        to: team_member_email,
+        subject: title,
+        html: htmlContent,
+        from: { email: 'gear@makinari.email', name: 'Gear' },
+        categories: ['system-notification']
+      });
+      emailSent = emailResult.success;
+    }
   }
 
   return {

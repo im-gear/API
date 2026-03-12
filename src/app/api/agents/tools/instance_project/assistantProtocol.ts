@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/database/supabase-client';
 export interface InstanceProjectParams {
   action: 'list' | 'set';
   site_id?: string;
+  email?: string;
 }
 
 export function instanceProjectTool(userId?: string | null, phone?: string) {
@@ -20,6 +21,10 @@ export function instanceProjectTool(userId?: string | null, phone?: string) {
         site_id: {
           type: 'string',
           description: 'The ID of the project to set as active (required if action is "set").'
+        },
+        email: {
+          type: 'string',
+          description: 'The email to set as active session (optional, used for email sessions).'
         }
       },
       required: ['action']
@@ -90,23 +95,37 @@ export function instanceProjectTool(userId?: string | null, phone?: string) {
               success: false,
               error: 'You do not have access to this project.',
             };
-          }
+        }
 
-          if (!phone) {
-             return {
-              success: false,
-              error: 'Missing phone number to set active project session.',
-            };
-          }
+        if (!phone && !args.email) {
+           return {
+            success: false,
+            error: 'Missing phone number or email to set active project session.',
+          };
+        }
 
-          // Upsert en remote_sessions
-          // Si cambian de proyecto, limpiamos el instance_id para que se genere uno nuevo con el contexto correcto
-          const { error } = await supabaseAdmin.from('remote_sessions').upsert({
-            phone_number: phone,
-            user_id: userId,
-            site_id: site_id,
-            instance_id: null
-          }, { onConflict: 'phone_number' });
+        // Upsert en remote_sessions
+        // Si cambian de proyecto, limpiamos el instance_id para que se genere uno nuevo con el contexto correcto
+        let upsertData: any = {
+          user_id: userId,
+          site_id: site_id,
+          instance_id: null
+        };
+        
+        let conflictKey = 'phone_number';
+        if (phone && phone.includes('@')) {
+          upsertData.email = phone;
+          conflictKey = 'email';
+        } else if (phone) {
+          upsertData.phone_number = phone;
+        } else if (args.email) {
+          upsertData.email = args.email;
+          conflictKey = 'email';
+        }
+
+        const { error } = await supabaseAdmin.from('remote_sessions').upsert(upsertData, { 
+          onConflict: conflictKey 
+        });
 
           if (error) {
             return {

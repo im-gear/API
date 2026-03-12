@@ -13,7 +13,7 @@ The `requirement_status` tool allows you to log progress and update statuses on 
 | :--- | :--- | :---: | :--- |
 | `action` | string | No | The action to perform (`create` or `list`). Defaults to `create`. |
 | `requirement_id` | string | Yes | The ID of the requirement being processed or queried. |
-| `instance_id` | string | Yes* | The ID of the instance processing the requirement (Optional when `action` is `list`). |
+| `instance_id` | string | No | The ID of the instance processing the requirement. |
 | `asset_id` | string | Yes* | The related asset ID (Required when `action` is `create`). |
 | `status` | string | Yes* | The new status (e.g. `in-progress`, `completed`, `failed`) (Required when `action` is `create`). |
 | `repo_url` | string | No | The GitHub or repository URL associated with this requirement progress. |

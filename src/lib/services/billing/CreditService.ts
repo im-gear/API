@@ -76,6 +76,8 @@ export class CreditService {
     TAVILY_SEARCH: 0.1,
     ASSISTANT_TOKEN_MILLION: 1.0, // 1 credit per million tokens
     IMAGE_GENERATION: 0.1,
-    VIDEO_GENERATION: 1.0
+    VIDEO_GENERATION: 1.0,
+    AUDIO_TRANSCRIPTION: 0.1,
+    FRAME_EXTRACTION: 0.1
   };
 }
