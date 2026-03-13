@@ -17,9 +17,10 @@ export async function createRequirementStatusCore(params: {
     throw new Error('site_id, requirement_id, and status are required');
   }
 
-  // Ensure asset_id is a valid UUID if provided, otherwise default to null to avoid database errors
+  // Ensure asset_id and instance_id are valid UUIDs if provided, otherwise default to null to avoid database errors
   const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
   const validAssetId = asset_id && isUuid(asset_id) ? asset_id : null;
+  const validInstanceId = instance_id && isUuid(instance_id) ? instance_id : null;
 
   // Insert into requirement_progress table (or requirement_status)
   const { data, error } = await supabaseAdmin
@@ -27,7 +28,7 @@ export async function createRequirementStatusCore(params: {
     .insert([
       {
         site_id,
-        instance_id: instance_id || null,
+        instance_id: validInstanceId,
         asset_id: validAssetId,
         requirement_id,
         repo_url: repo_url || null,
@@ -69,8 +70,11 @@ export async function listRequirementStatusCore(params: {
   if (requirement_id) {
     query = query.eq('requirement_id', requirement_id);
   }
-  if (instance_id) {
-    query = query.eq('instance_id', instance_id);
+  const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  const validInstanceId = instance_id && isUuid(instance_id) ? instance_id : null;
+
+  if (validInstanceId) {
+    query = query.eq('instance_id', validInstanceId);
   }
 
   query = query.order('created_at', { ascending: false });

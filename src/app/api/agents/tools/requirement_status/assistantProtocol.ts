@@ -29,7 +29,12 @@ export function requirementStatusTool(site_id: string, default_instance_id?: str
       message?: string;
     }) => {
       const action = args.action || 'create';
-      const effective_instance_id = args.instance_id || default_instance_id;
+      let effective_instance_id = args.instance_id || default_instance_id;
+      
+      // Prevent "default" from being passed as a UUID
+      if (effective_instance_id === 'default') {
+        effective_instance_id = undefined;
+      }
       
       try {
         if (action === 'create') {

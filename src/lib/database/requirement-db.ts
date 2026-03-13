@@ -73,6 +73,28 @@ export interface UpdateRequirementParams {
   budget?: number;
 }
 
+export interface DbRequirementStatus {
+  id: string;
+  site_id: string;
+  instance_id: string | null;
+  asset_id: string | null;
+  requirement_id: string;
+  repo_url: string | null;
+  preview_url: string | null;
+  status: string;
+  message: string | null;
+  created_at: string;
+}
+
+export interface RequirementStatusFilters {
+  requirement_id?: string;
+  site_id?: string;
+  instance_id?: string;
+  status?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export async function getRequirements(filters: RequirementFilters): Promise<{
   requirements: DbRequirement[];
   total: number;
@@ -211,4 +233,38 @@ export async function updateRequirement(
   }
 
   return data as DbRequirement;
+}
+
+export async function getRequirementStatuses(filters: RequirementStatusFilters): Promise<{
+  statuses: DbRequirementStatus[];
+  total: number;
+  hasMore: boolean;
+}> {
+  let query = supabaseAdmin
+    .from('requirement_status')
+    .select('*', { count: 'exact' });
+
+  if (filters.requirement_id) query = query.eq('requirement_id', filters.requirement_id);
+  if (filters.site_id) query = query.eq('site_id', filters.site_id);
+  if (filters.instance_id) query = query.eq('instance_id', filters.instance_id);
+  if (filters.status) query = query.eq('status', filters.status);
+
+  query = query.order('created_at', { ascending: false });
+
+  const limit = filters.limit ?? 50;
+  const offset = filters.offset ?? 0;
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    throw new Error(`Error getting requirement statuses: ${error.message}`);
+  }
+
+  const total = count ?? (data?.length ?? 0);
+  return {
+    statuses: (data ?? []) as DbRequirementStatus[],
+    total,
+    hasMore: total > offset + (data?.length ?? 0),
+  };
 }
