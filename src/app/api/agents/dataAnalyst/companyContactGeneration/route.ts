@@ -302,6 +302,8 @@ ABSOLUTE DOMAIN POLICY (Do NOT violate):
 - Use ONLY the provided domain: ${domain}
 - All generated emails MUST be on ${domain}
 - Do NOT use any other domain or subdomain
+- NEVER generate emails with generic providers (e.g. @gmail.com, @hotmail.com, @yahoo.com) UNLESS the provided domain is exactly that.
+- NEVER generate emails using other companies' domains (e.g. @facebook.com, @microsoft.com) if the provided domain is different.
 
 IMPORTANT: Return the emails in strict order of probability considering both universal patterns and cultural context. Provide confidence scores (0-1) for each email and reasoning for the pattern selection including cultural considerations.`;
     

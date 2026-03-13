@@ -831,6 +831,8 @@ PROHIBITED EMAIL PATTERNS (CRITICAL - DO NOT GENERATE):
 - The site's/company's domain is ${siteDomainNote || 'N/A'} (from ${siteUrl || 'N/A'}).
 - NEVER use or propose any email address on the site's/company's domain or any of its subdomains.
 - Do NOT confuse the site's domain with the lead's domain. All generated emails MUST be on ${domain}.
+- NEVER generate emails with generic providers (e.g. @gmail.com, @hotmail.com, @yahoo.com) UNLESS the lead's domain is exactly that.
+- NEVER generate emails using other companies' domains (e.g. @facebook.com, @microsoft.com) if the lead's domain is different.
 
 EXECUTIVE POSITION DETECTION:
 Consider these roles as executive positions requiring 20 emails: CEO, CTO, CFO, CMO, COO, Director, President, VP, Vice President, Founder, Co-founder, Owner, Partner, General Manager, Country Manager, Regional Manager, Executive, Senior Manager, Managing Director, Executive Director.
