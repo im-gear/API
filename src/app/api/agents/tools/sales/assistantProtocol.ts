@@ -50,9 +50,8 @@ export function salesTool(current_site_id?: string) {
         customer_id: { type: 'string', description: 'Customer UUID' },
         sale_id: { type: 'string', description: 'Sale UUID (required for update/delete)' },
         product_ids: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of product UUIDs',
+          type: 'string',
+          description: 'Array of product UUIDs (comma-separated string)',
         },
         payment_method: { type: 'string', description: 'Payment method (e.g. card, transfer)' },
         total_amount: { type: 'number', description: 'Total amount' },
@@ -60,7 +59,7 @@ export function salesTool(current_site_id?: string) {
         notes: { type: 'string', description: 'Sales notes' },
         discount: { type: 'number', description: 'Discount amount' },
         tax: { type: 'number', description: 'Tax amount' },
-        shipping_address: { type: 'object', description: 'Shipping address' },
+        shipping_address: { type: 'string', description: 'Shipping address (JSON string)' },
         site_id: { type: 'string', description: 'Site UUID' },
         limit: { type: 'number', description: 'Limit results' },
         offset: { type: 'number', description: 'Offset results' },
@@ -77,6 +76,8 @@ export function salesTool(current_site_id?: string) {
 
         const body = {
           ...params,
+          product_ids: params.product_ids && typeof params.product_ids === 'string' ? params.product_ids.split(',').map(id => id.trim()) : params.product_ids,
+          shipping_address: params.shipping_address && typeof params.shipping_address === 'string' ? JSON.parse(params.shipping_address) : params.shipping_address,
           site_id: params.site_id || current_site_id,
         };
 
@@ -90,6 +91,8 @@ export function salesTool(current_site_id?: string) {
         }
         const body = {
           ...params,
+          product_ids: params.product_ids && typeof params.product_ids === 'string' ? params.product_ids.split(',').map(id => id.trim()) : params.product_ids,
+          shipping_address: params.shipping_address && typeof params.shipping_address === 'string' ? JSON.parse(params.shipping_address) : params.shipping_address,
           site_id: params.site_id || current_site_id,
         };
         const data = await fetchApiTool('/api/agents/tools/sales/update', body, 'Sale update failed');

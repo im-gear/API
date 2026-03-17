@@ -61,9 +61,8 @@ export function copywritingTool(site_id: string, user_id?: string) {
         use_case: { type: 'string', description: 'When to use this copy' },
         notes: { type: 'string', description: 'Internal notes about this copy' },
         tags: { 
-          type: 'array', 
-          items: { type: 'string' }, 
-          description: 'Tags for categorization' 
+          type: 'string', 
+          description: 'Tags for categorization (comma-separated string)' 
         },
         
         // List specific filters
@@ -81,6 +80,7 @@ export function copywritingTool(site_id: string, user_id?: string) {
       if (action === 'create') {
         const body = {
           ...params,
+          tags: params.tags && typeof params.tags === 'string' ? params.tags.split(',').map(t => t.trim()) : params.tags,
           site_id: params.site_id || site_id,
           user_id: params.user_id || user_id,
         };
@@ -99,6 +99,7 @@ export function copywritingTool(site_id: string, user_id?: string) {
         }
         const body = {
           ...params,
+          tags: params.tags && typeof params.tags === 'string' ? params.tags.split(',').map(t => t.trim()) : params.tags,
           site_id: params.site_id || site_id,
         };
         const data = await fetchApiTool('/api/agents/tools/copywriting/update', body, 'Update copywriting failed');

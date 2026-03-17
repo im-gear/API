@@ -66,17 +66,15 @@ export function dealsTool(current_site_id?: string) {
         expected_close_date: { type: 'string', description: 'Date string for expected close (YYYY-MM-DD)' },
         notes: { type: 'string', description: 'Deal notes' },
         qualification_score: { type: 'number', description: 'Qualification score' },
-        qualification_criteria: { type: 'object', description: 'JSON object with qualification specifics' },
+        qualification_criteria: { type: 'string', description: 'JSON object with qualification specifics (as string)' },
         sales_order_id: { type: 'string', description: 'Related Sale/Order UUID if closed' },
         lead_ids: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of Lead UUIDs attached to this deal'
+          type: 'string',
+          description: 'Array of Lead UUIDs attached to this deal (comma-separated string)'
         },
         owner_ids: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of User UUIDs who own this deal'
+          type: 'string',
+          description: 'Array of User UUIDs who own this deal (comma-separated string)'
         },
         limit: { type: 'number', description: 'Limit results' },
         offset: { type: 'number', description: 'Offset results' },
@@ -93,6 +91,9 @@ export function dealsTool(current_site_id?: string) {
 
         const body = {
           ...params,
+          qualification_criteria: params.qualification_criteria && typeof params.qualification_criteria === 'string' ? JSON.parse(params.qualification_criteria) : params.qualification_criteria,
+          lead_ids: params.lead_ids && typeof params.lead_ids === 'string' ? params.lead_ids.split(',').map(id => id.trim()) : params.lead_ids,
+          owner_ids: params.owner_ids && typeof params.owner_ids === 'string' ? params.owner_ids.split(',').map(id => id.trim()) : params.owner_ids,
           site_id: params.site_id || current_site_id,
         };
 
@@ -106,6 +107,9 @@ export function dealsTool(current_site_id?: string) {
         }
         const body = {
           ...params,
+          qualification_criteria: params.qualification_criteria && typeof params.qualification_criteria === 'string' ? JSON.parse(params.qualification_criteria) : params.qualification_criteria,
+          lead_ids: params.lead_ids && typeof params.lead_ids === 'string' ? params.lead_ids.split(',').map(id => id.trim()) : params.lead_ids,
+          owner_ids: params.owner_ids && typeof params.owner_ids === 'string' ? params.owner_ids.split(',').map(id => id.trim()) : params.owner_ids,
           site_id: params.site_id || current_site_id,
         };
         const data = await fetchApiTool('/api/agents/tools/deals/update', body, 'Deal update failed');

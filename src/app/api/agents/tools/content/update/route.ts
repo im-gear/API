@@ -25,35 +25,28 @@ const UpdateContentSchema = z.object({
   published_at: z.string().datetime().optional().nullable(),
 });
 
+export async function updateContentCore(input: any) {
+  const validated = UpdateContentSchema.parse(input);
+
+  const { content_id, site_id, ...updateFields } = validated;
+
+  const existing = await getContentById(content_id);
+  if (!existing) {
+    throw new Error('Content not found');
+  }
+
+  if (existing.site_id !== site_id) {
+    throw new Error('No tienes permiso para actualizar este contenido');
+  }
+
+  const content = await updateContent(content_id, updateFields);
+  return content;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validated = UpdateContentSchema.parse(body);
-
-    const { content_id, site_id, ...updateFields } = validated;
-
-    const existing = await getContentById(content_id);
-    if (!existing) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Content not found',
-        },
-        { status: 404 }
-      );
-    }
-
-    if (existing.site_id !== site_id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No tienes permiso para actualizar este contenido',
-        },
-        { status: 403 }
-      );
-    }
-
-    const content = await updateContent(content_id, updateFields);
+    const content = await updateContentCore(body);
 
     return NextResponse.json(
       {

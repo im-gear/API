@@ -87,11 +87,11 @@ export function leadsTool(site_id: string, user_id?: string) {
         visitor_id: { type: 'string', description: 'Visitor UUID' },
         lead_score: { type: 'number', description: 'Score 1-100' },
         source: { type: 'string', description: 'Lead source' },
-        contact_info: { type: 'object', description: 'Contact details' },
-        company_info: { type: 'object', description: 'Company details' },
+        contact_info: { type: 'string', description: 'Contact details (JSON string)' },
+        company_info: { type: 'string', description: 'Company details (JSON string)' },
         interest_level: { type: 'string', description: 'Interest level' },
         product_interest: { type: 'string', description: 'Product interest' },
-        pages_visited: { type: 'array', items: { type: 'string' }, description: 'Pages visited' },
+        pages_visited: { type: 'string', description: 'Pages visited (comma-separated string)' },
         time_spent: { type: 'number', description: 'Time spent' },
         visit_count: { type: 'number', description: 'Visit count' },
       },
@@ -144,6 +144,9 @@ export function leadsTool(site_id: string, user_id?: string) {
         }
         const body = {
           ...params,
+          contact_info: params.contact_info && typeof params.contact_info === 'string' ? JSON.parse(params.contact_info) : params.contact_info,
+          company_info: params.company_info && typeof params.company_info === 'string' ? JSON.parse(params.company_info) : params.company_info,
+          pages_visited: params.pages_visited && typeof params.pages_visited === 'string' ? params.pages_visited.split(',').map(p => p.trim()) : params.pages_visited,
           site_id,
         };
         const data = await fetchApiTool('/api/agents/tools/leads/identify', body, 'Identify lead failed');

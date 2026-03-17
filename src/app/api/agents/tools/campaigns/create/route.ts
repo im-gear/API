@@ -29,35 +29,40 @@ async function resolveUserId(siteId: string, userId?: string): Promise<string> {
   return data.user_id;
 }
 
+export async function createCampaignCore(input: any) {
+  const validated = CreateCampaignSchema.parse(input);
+  const effectiveUserId = await resolveUserId(validated.site_id, validated.user_id);
+
+  const campaignData = {
+    title: validated.title,
+    description: validated.description,
+    status: validated.status,
+    type: validated.type,
+    priority: validated.priority,
+    budget: validated.budget,
+    revenue: validated.revenue,
+    due_date: validated.due_date,
+    site_id: validated.site_id,
+    user_id: effectiveUserId,
+    command_id: validated.command_id,
+  };
+
+  const { data: campaign, error } = await supabaseAdmin
+    .from('campaigns')
+    .insert(campaignData)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return campaign;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validated = CreateCampaignSchema.parse(body);
-    const effectiveUserId = await resolveUserId(validated.site_id, validated.user_id);
-
-    const campaignData = {
-      title: validated.title,
-      description: validated.description,
-      status: validated.status,
-      type: validated.type,
-      priority: validated.priority,
-      budget: validated.budget,
-      revenue: validated.revenue,
-      due_date: validated.due_date,
-      site_id: validated.site_id,
-      user_id: effectiveUserId,
-      command_id: validated.command_id,
-    };
-
-    const { data: campaign, error } = await supabaseAdmin
-      .from('campaigns')
-      .insert(campaignData)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(error.message);
-    }
+    const campaign = await createCampaignCore(body);
 
     return NextResponse.json({
       success: true,

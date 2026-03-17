@@ -1,5 +1,6 @@
 export function getApiBaseUrl(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  // Try to use the API URL, fallback to API SERVER URL, then APP URL, and finally localhost:3001
+  const url = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_SERVER_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
   return url.replace(/\/$/, '');
 }
 

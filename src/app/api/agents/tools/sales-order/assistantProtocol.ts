@@ -56,9 +56,8 @@ export function salesOrderTool(current_site_id?: string) {
         customer_id: { type: 'string', description: 'Customer UUID' },
         order_id: { type: 'string', description: 'Order UUID (required for update/delete)' },
         product_ids: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of product UUIDs (for create)',
+          type: 'string',
+          description: 'Array of product UUIDs (for create, comma-separated string)',
         },
         payment_method: { type: 'string', description: 'Payment method (e.g. card, transfer)' },
         total_amount: { type: 'number', description: 'Total amount' },
@@ -67,8 +66,8 @@ export function salesOrderTool(current_site_id?: string) {
         notes: { type: 'string', description: 'Order notes' },
         discount: { type: 'number', description: 'Discount amount' },
         tax: { type: 'number', description: 'Tax amount' },
-        shipping_address: { type: 'object', description: 'Shipping address' },
-        order_details: { type: 'object', description: 'Additional order details' },
+        shipping_address: { type: 'string', description: 'Shipping address (JSON string)' },
+        order_details: { type: 'string', description: 'Additional order details (JSON string)' },
         delivery_date: { type: 'string', description: 'Delivery date (for update)' },
         shipping_method: { type: 'string', description: 'Shipping method (for update)' },
         priority: { type: 'string', description: 'Priority: low, medium, high (for update)' },
@@ -89,6 +88,9 @@ export function salesOrderTool(current_site_id?: string) {
 
         const body = {
           ...params,
+          product_ids: params.product_ids && typeof params.product_ids === 'string' ? params.product_ids.split(',').map(id => id.trim()) : params.product_ids,
+          shipping_address: params.shipping_address && typeof params.shipping_address === 'string' ? JSON.parse(params.shipping_address) : params.shipping_address,
+          order_details: params.order_details && typeof params.order_details === 'string' ? JSON.parse(params.order_details) : params.order_details,
           site_id: params.site_id || current_site_id,
         };
 
@@ -102,6 +104,9 @@ export function salesOrderTool(current_site_id?: string) {
         }
         const body = {
           ...params,
+          product_ids: params.product_ids && typeof params.product_ids === 'string' ? params.product_ids.split(',').map(id => id.trim()) : params.product_ids,
+          shipping_address: params.shipping_address && typeof params.shipping_address === 'string' ? JSON.parse(params.shipping_address) : params.shipping_address,
+          order_details: params.order_details && typeof params.order_details === 'string' ? JSON.parse(params.order_details) : params.order_details,
           site_id: params.site_id || current_site_id,
         };
         const data = await fetchApiTool('/api/agents/tools/sales-order/update', body, 'Sales order update failed');

@@ -35,26 +35,32 @@ async function resolveUserId(siteId: string, userId?: string): Promise<string | 
   return data?.user_id;
 }
 
+export async function createContentCore(input: any) {
+  const validated = CreateContentSchema.parse(input);
+  const effectiveUserId = await resolveUserId(validated.site_id, validated.user_id);
+
+  const content = await createContent({
+    title: validated.title,
+    type: validated.type,
+    site_id: validated.site_id,
+    user_id: effectiveUserId,
+    description: validated.description,
+    status: validated.status,
+    segment_id: validated.segment_id,
+    text: validated.text,
+    tags: validated.tags,
+    instructions: validated.instructions,
+    campaign_id: validated.campaign_id,
+    metadata: validated.metadata,
+  });
+
+  return content;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validated = CreateContentSchema.parse(body);
-    const effectiveUserId = await resolveUserId(validated.site_id, validated.user_id);
-
-    const content = await createContent({
-      title: validated.title,
-      type: validated.type,
-      site_id: validated.site_id,
-      user_id: effectiveUserId,
-      description: validated.description,
-      status: validated.status,
-      segment_id: validated.segment_id,
-      text: validated.text,
-      tags: validated.tags,
-      instructions: validated.instructions,
-      campaign_id: validated.campaign_id,
-      metadata: validated.metadata,
-    });
+    const content = await createContentCore(body);
 
     return NextResponse.json(
       {

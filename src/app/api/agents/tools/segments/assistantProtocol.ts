@@ -51,7 +51,7 @@ export function segmentsTool(site_id: string, user_id?: string) {
         estimated_value: { type: 'number', description: 'Estimated value' },
         language: { type: 'string', description: 'Language code (e.g. en)' },
         is_active: { type: 'boolean', description: 'Is segment active?' },
-        attributes: { type: 'object', description: 'Additional attributes' },
+        attributes: { type: 'string', description: 'Additional attributes (JSON string)' },
         
         // List filters
         site_id: { type: 'string', description: 'Filter by site UUID' },
@@ -67,6 +67,7 @@ export function segmentsTool(site_id: string, user_id?: string) {
       if (action === 'create') {
         const body = {
           ...params,
+          attributes: params.attributes && typeof params.attributes === 'string' ? JSON.parse(params.attributes) : params.attributes,
           site_id,
           user_id,
         };
@@ -84,6 +85,7 @@ export function segmentsTool(site_id: string, user_id?: string) {
         }
         const body = {
           ...params,
+          attributes: params.attributes && typeof params.attributes === 'string' ? JSON.parse(params.attributes) : params.attributes,
           site_id,
         };
         const data = await fetchApiTool('/api/agents/tools/segments/update', body, 'Update segment failed');

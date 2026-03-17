@@ -49,14 +49,12 @@ export function schedulingTool(site_id: string, instance_id?: string) {
         start_time: { type: 'string', description: 'Day start time (default 09:00)' },
         end_time: { type: 'string', description: 'Day end time (default 17:00)' },
         participants: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Participant IDs to check availability',
+          type: 'string',
+          description: 'Participant IDs to check availability (comma-separated string)',
         },
         resources: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Resource IDs',
+          type: 'string',
+          description: 'Resource IDs (comma-separated string)',
         },
         // schedule params
         title: { type: 'string', description: 'Appointment title' },
@@ -85,8 +83,12 @@ export function schedulingTool(site_id: string, instance_id?: string) {
         });
         if (params.start_time) urlParams.set('start_time', params.start_time);
         if (params.end_time) urlParams.set('end_time', params.end_time);
-        if (params.participants?.length) urlParams.set('participants', params.participants.join(','));
-        if (params.resources?.length) urlParams.set('resources', params.resources.join(','));
+        
+        const participantsArray = params.participants && typeof params.participants === 'string' ? params.participants.split(',').map(p => p.trim()) : params.participants;
+        if (participantsArray?.length) urlParams.set('participants', participantsArray.join(','));
+        
+        const resourcesArray = params.resources && typeof params.resources === 'string' ? params.resources.split(',').map(r => r.trim()) : params.resources;
+        if (resourcesArray?.length) urlParams.set('resources', resourcesArray.join(','));
 
         const endpoint = `/api/agents/tools/scheduling/availability?${urlParams}`;
         const data = await fetchApiToolGet(endpoint, 'Get available slots failed');
@@ -102,6 +104,8 @@ export function schedulingTool(site_id: string, instance_id?: string) {
 
         const body = {
           ...params,
+          participants: params.participants && typeof params.participants === 'string' ? params.participants.split(',').map(p => p.trim()) : params.participants,
+          resources: params.resources && typeof params.resources === 'string' ? params.resources.split(',').map(r => r.trim()) : params.resources,
           context_id: params.context_id || site_id,
           site_id: site_id,
         };

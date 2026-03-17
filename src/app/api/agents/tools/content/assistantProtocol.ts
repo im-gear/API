@@ -4,7 +4,8 @@
  */
 
 import { getContentCore } from './get/route';
-import { fetchApiTool } from '@/app/api/agents/tools/utils/fetch-helper';
+import { createContentCore } from './create/route';
+import { updateContentCore } from './update/route';
 
 
 
@@ -92,8 +93,8 @@ export function contentTool(site_id: string, user_id?: string) {
            throw new Error('Missing required fields for create content: title, type');
         }
 
-        const data = await fetchApiTool('/api/agents/tools/content/create', body, 'Create content failed');
-        return data;
+        const data = await createContentCore(body);
+        return { success: true, content: data };
       }
 
       if (action === 'update') {
@@ -106,8 +107,8 @@ export function contentTool(site_id: string, user_id?: string) {
           metadata: params.metadata ? (typeof params.metadata === 'string' ? JSON.parse(params.metadata) : params.metadata) : undefined,
           site_id,
         };
-        const data = await fetchApiTool('/api/agents/tools/content/update', body, 'Update content failed');
-        return data;
+        const data = await updateContentCore(body);
+        return { success: true, content: data };
       }
 
       if (action === 'list') {

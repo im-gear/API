@@ -70,7 +70,7 @@ export function tasksTool(site_id: string, user_id?: string) {
         assignee: { type: 'string', description: 'Assignee user UUID' },
         notes: { type: 'string', description: 'Additional notes' },
         conversation_id: { type: 'string', description: 'Conversation UUID' },
-        address: { type: 'object', description: 'Address/location data' },
+        address: { type: 'string', description: 'Address/location data (JSON string)' },
         
         // List specific filters
         user_id: { type: 'string', description: 'Filter by user UUID' },
@@ -90,6 +90,7 @@ export function tasksTool(site_id: string, user_id?: string) {
       if (action === 'create') {
         const body = {
           ...params,
+          address: params.address && typeof params.address === 'string' ? JSON.parse(params.address) : params.address,
           site_id,
           user_id: user_id || params.assignee,
         };
@@ -108,6 +109,7 @@ export function tasksTool(site_id: string, user_id?: string) {
         }
         const body = {
           ...params,
+          address: params.address && typeof params.address === 'string' ? JSON.parse(params.address) : params.address,
           site_id,
         };
         const data = await fetchApiTool('/api/agents/tools/tasks/update', body, 'Update task failed');
