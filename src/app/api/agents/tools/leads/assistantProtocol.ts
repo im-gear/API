@@ -4,10 +4,9 @@
  */
 
 import { getLeadCore } from './get/route';
+import { fetchApiTool } from '@/app/api/agents/tools/utils/fetch-helper';
 
-function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
+
 
 export interface LeadsToolParams {
   action: 'create' | 'list' | 'update' | 'qualify' | 'identify';
@@ -111,15 +110,7 @@ export function leadsTool(site_id: string, user_id?: string) {
            throw new Error('Missing required fields for create lead: name, email');
         }
 
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/leads/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Create lead failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/leads/create', body, 'Create lead failed');
         return data;
       }
 
@@ -131,15 +122,7 @@ export function leadsTool(site_id: string, user_id?: string) {
           ...params,
           site_id,
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/leads/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Update lead failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/leads/update', body, 'Update lead failed');
         return data;
       }
 
@@ -151,15 +134,7 @@ export function leadsTool(site_id: string, user_id?: string) {
             ...params,
             site_id
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/leads/qualify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Qualify lead failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/leads/qualify', body, 'Qualify lead failed');
         return data;
       }
 
@@ -171,15 +146,7 @@ export function leadsTool(site_id: string, user_id?: string) {
           ...params,
           site_id,
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/leads/identify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Identify lead failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/leads/identify', body, 'Identify lead failed');
         return data;
       }
 

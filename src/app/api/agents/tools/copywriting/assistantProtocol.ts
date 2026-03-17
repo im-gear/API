@@ -4,10 +4,9 @@
  */
 
 import { getCopywritingsCore } from './get/route';
+import { fetchApiTool } from '@/app/api/agents/tools/utils/fetch-helper';
 
-function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
+
 
 export interface CopywritingToolParams {
   action: 'create' | 'list' | 'update' | 'delete' | 'get';
@@ -90,15 +89,7 @@ export function copywritingTool(site_id: string, user_id?: string) {
            throw new Error('Missing required fields for create copywriting: title, copy_type, content');
         }
 
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/copywriting/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Create copywriting failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/copywriting/create', body, 'Create copywriting failed');
         return data;
       }
 
@@ -110,15 +101,7 @@ export function copywritingTool(site_id: string, user_id?: string) {
           ...params,
           site_id: params.site_id || site_id,
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/copywriting/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Update copywriting failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/copywriting/update', body, 'Update copywriting failed');
         return data;
       }
 
@@ -126,15 +109,7 @@ export function copywritingTool(site_id: string, user_id?: string) {
         if (!params.copywriting_id) {
             throw new Error('Missing required field for delete copywriting: copywriting_id');
         }
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/copywriting/delete`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ copywriting_id: params.copywriting_id, site_id: params.site_id || site_id }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Delete copywriting failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/copywriting/delete', { copywriting_id: params.copywriting_id, site_id: params.site_id || site_id }, 'Delete copywriting failed');
         return data;
       }
 

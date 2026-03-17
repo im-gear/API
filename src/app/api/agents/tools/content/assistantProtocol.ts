@@ -4,10 +4,9 @@
  */
 
 import { getContentCore } from './get/route';
+import { fetchApiTool } from '@/app/api/agents/tools/utils/fetch-helper';
 
-function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
+
 
 export interface ContentToolParams {
   action: 'create' | 'list' | 'update';
@@ -92,15 +91,7 @@ export function contentTool(site_id: string, user_id?: string) {
            throw new Error('Missing required fields for create content: title, type');
         }
 
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/content/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Create content failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/content/create', body, 'Create content failed');
         return data;
       }
 
@@ -112,15 +103,7 @@ export function contentTool(site_id: string, user_id?: string) {
           ...params,
           site_id,
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/content/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Update content failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/content/update', body, 'Update content failed');
         return data;
       }
 

@@ -10,10 +10,9 @@ import type { UbuntuInstance } from 'scrapybara';
 import { getAgentMemories, saveOnAgentMemory } from '@/lib/services/agent-memory-tools-service';
 import { findGrowthRobotAgent } from '@/lib/helpers/agent-finder';
 import { getMemoriesCore } from './get/route';
+import { fetchApiTool } from '@/app/api/agents/tools/utils/fetch-helper';
 
-function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
+
 
 export interface MemoriesToolParams {
   action: 'save' | 'list' | 'update' | 'delete';
@@ -126,16 +125,7 @@ export function memoriesTool(site_id: string, user_id: string, instance_id?: str
             site_id,
           };
 
-          const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/memories/save`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
-
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || 'Save memory failed');
-          }
+          const data = await fetchApiTool('/api/agents/tools/memories/save', body, 'Save memory failed');
           return data;
         }
 
@@ -150,16 +140,7 @@ export function memoriesTool(site_id: string, user_id: string, instance_id?: str
             site_id,
           };
 
-          const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/memories/update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
-
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || 'Update memory failed');
-          }
+          const data = await fetchApiTool('/api/agents/tools/memories/update', body, 'Update memory failed');
           return data;
         }
 
@@ -174,16 +155,7 @@ export function memoriesTool(site_id: string, user_id: string, instance_id?: str
             site_id,
           };
 
-          const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/memories/delete`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
-
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || 'Delete memory failed');
-          }
+          const data = await fetchApiTool('/api/agents/tools/memories/delete', body, 'Delete memory failed');
           return data;
         }
 

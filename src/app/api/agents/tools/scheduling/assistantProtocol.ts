@@ -1,11 +1,10 @@
+import { fetchApiTool, fetchApiToolGet, getApiBaseUrl } from '@/app/api/agents/tools/utils/fetch-helper';
 /**
  * Assistant Protocol Wrapper for Scheduling Tool
  * Unified tool for scheduling (check_availability, schedule)
  */
 
-function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
+
 
 export interface SchedulingToolParams {
   action: 'check_availability' | 'schedule';
@@ -89,13 +88,8 @@ export function schedulingTool(site_id: string, instance_id?: string) {
         if (params.participants?.length) urlParams.set('participants', params.participants.join(','));
         if (params.resources?.length) urlParams.set('resources', params.resources.join(','));
 
-        const res = await fetch(
-          `${getApiBaseUrl()}/api/agents/tools/scheduling/availability?${urlParams}`
-        );
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Get available slots failed');
-        }
+        const endpoint = `/api/agents/tools/scheduling/availability?${urlParams}`;
+        const data = await fetchApiToolGet(endpoint, 'Get available slots failed');
         return data;
       }
 
@@ -112,15 +106,7 @@ export function schedulingTool(site_id: string, instance_id?: string) {
           site_id: site_id,
         };
 
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/scheduling/schedule`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Schedule date failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/scheduling/schedule', body, 'Schedule date failed');
         return data;
       }
 

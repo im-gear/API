@@ -4,10 +4,9 @@
  */
 
 import { getCampaignCore } from './get/route';
+import { fetchApiTool } from '@/app/api/agents/tools/utils/fetch-helper';
 
-function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
+
 
 export interface CampaignsToolParams {
   action: 'create' | 'list' | 'update';
@@ -75,15 +74,7 @@ export function campaignsTool(site_id: string, user_id?: string) {
            throw new Error('Missing required fields for create campaign: title');
         }
 
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/campaigns/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Create campaign failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/campaigns/create', body, 'Create campaign failed');
         return data;
       }
 
@@ -95,15 +86,7 @@ export function campaignsTool(site_id: string, user_id?: string) {
           ...params,
           site_id,
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/campaigns/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error?.message || data.error || 'Update campaign failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/campaigns/update', body, 'Update campaign failed');
         return data;
       }
 

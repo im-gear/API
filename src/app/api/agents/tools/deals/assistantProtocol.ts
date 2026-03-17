@@ -4,10 +4,9 @@
  */
 
 import { getDealsCore } from '@/app/api/agents/tools/deals/get/route';
+import { fetchApiTool } from '@/app/api/agents/tools/utils/fetch-helper';
 
-function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-}
+
 
 export interface DealsToolParams {
   action: 'create' | 'list' | 'update' | 'delete';
@@ -97,15 +96,7 @@ export function dealsTool(current_site_id?: string) {
           site_id: params.site_id || current_site_id,
         };
 
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/deals/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Deal creation failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/deals/create', body, 'Deal creation failed');
         return data;
       }
 
@@ -117,15 +108,7 @@ export function dealsTool(current_site_id?: string) {
           ...params,
           site_id: params.site_id || current_site_id,
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/deals/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Deal update failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/deals/update', body, 'Deal update failed');
         return data;
       }
 
@@ -137,15 +120,7 @@ export function dealsTool(current_site_id?: string) {
           deal_id: params.deal_id,
           site_id: params.site_id || current_site_id,
         };
-        const res = await fetch(`${getApiBaseUrl()}/api/agents/tools/deals/delete`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Deal deletion failed');
-        }
+        const data = await fetchApiTool('/api/agents/tools/deals/delete', body, 'Deal deletion failed');
         return data;
       }
 

@@ -103,7 +103,7 @@ export function instancePlanTool(site_id: string, instance_id: string, user_id?:
 
       // Prevent "default" from being passed as a UUID
       if (params.instance_id === 'default') {
-        params.instance_id = undefined;
+        delete (params as any).instance_id;
       }
       
       // Default site_id if not provided but available in closure
