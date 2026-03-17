@@ -16,7 +16,7 @@ export interface AssetsToolParams {
   file_type?: string;
   instance_id?: string;
   content?: string;
-  metadata?: any;
+  metadata?: string;
   
   // List params
   limit?: number;
@@ -41,7 +41,7 @@ export function assetsTool(site_id: string, user_id?: string) {
         file_type: { type: 'string', description: 'File type (e.g. text/plain, image/png)' },
         instance_id: { type: 'string', description: 'Robot instance UUID (required for create/list)' },
         content: { type: 'string', description: 'Text content of the asset' },
-        metadata: { type: 'object', description: 'Metadata JSON' },
+        metadata: { type: 'string', description: 'Metadata JSON (as string)' },
         
         limit: { type: 'number', description: 'Max results' },
         offset: { type: 'number', description: 'Pagination offset' },
@@ -58,6 +58,7 @@ export function assetsTool(site_id: string, user_id?: string) {
 
         const body = {
           ...params,
+          metadata: params.metadata && typeof params.metadata === 'string' ? JSON.parse(params.metadata) : params.metadata,
           site_id,
         };
 
@@ -71,6 +72,7 @@ export function assetsTool(site_id: string, user_id?: string) {
         }
         const body = {
           ...params,
+          metadata: params.metadata && typeof params.metadata === 'string' ? JSON.parse(params.metadata) : params.metadata,
           site_id,
         };
         const asset = await updateAssetCore(body);

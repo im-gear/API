@@ -13,7 +13,7 @@ export function instanceLogsTool(site_id: string, user_id?: string, instance_id?
         log_type: { type: 'string', description: 'Type of log (e.g. system, user_action, agent_action) (required for create)' },
         level: { type: 'string', enum: ['info', 'warn', 'error'], description: 'Severity level (e.g. info, warn, error) (required for create)' },
         message: { type: 'string', description: 'Message or detail of the log (required for create)' },
-        details: { type: 'object', description: 'Additional context or metadata in JSON format (optional)' },
+        details: { type: 'string', description: 'Additional context or metadata in JSON format (optional, as string)' },
         limit: { type: 'number', description: 'Maximum number of logs to return (optional, default 50)' },
         offset: { type: 'number', description: 'Offset for pagination (optional, default 0)' }
       }
@@ -25,7 +25,7 @@ export function instanceLogsTool(site_id: string, user_id?: string, instance_id?
       log_type?: string;
       level?: string;
       message?: string;
-      details?: Record<string, any>;
+      details?: string;
       limit?: number;
       offset?: number;
     }) => {
@@ -46,7 +46,7 @@ export function instanceLogsTool(site_id: string, user_id?: string, instance_id?
             log_type: args.log_type,
             level: args.level,
             message: args.message,
-            details: args.details
+            details: args.details && typeof args.details === 'string' ? JSON.parse(args.details) : args.details
           });
           return result;
         } else if (action === 'list') {
