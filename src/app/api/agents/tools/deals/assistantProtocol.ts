@@ -25,8 +25,8 @@ export interface DealsToolParams {
   qualification_score?: number;
   qualification_criteria?: Record<string, unknown>;
   sales_order_id?: string;
-  lead_ids?: string[];
-  owner_ids?: string[];
+  lead_ids?: string[] | string;
+  owner_ids?: string[] | string;
 
   // List params
   limit?: number;

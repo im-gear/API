@@ -53,7 +53,7 @@ export function instanceTool(site_id: string, instance_id?: string, user_id?: st
         },
         status: {
           type: 'string',
-          description: 'Optional for update: Set status (e.g. running, paused, stopped).'
+          description: 'Optional for create and update: Set status (e.g. running, paused, stopped). On create defaults to "running" if omitted.'
         },
         limit: {
           type: 'number',

@@ -16,8 +16,8 @@ export interface SchedulingToolParams {
   team_id?: string;
   start_time?: string;
   end_time?: string;
-  participants?: string[];
-  resources?: string[];
+  participants?: string[] | string;
+  resources?: string[] | string;
 
   // schedule params
   title?: string;
@@ -84,10 +84,10 @@ export function schedulingTool(site_id: string, instance_id?: string) {
         if (params.start_time) urlParams.set('start_time', params.start_time);
         if (params.end_time) urlParams.set('end_time', params.end_time);
         
-        const participantsArray = params.participants && typeof params.participants === 'string' ? params.participants.split(',').map(p => p.trim()) : params.participants;
+        const participantsArray = typeof params.participants === 'string' ? params.participants.split(',').map(p => p.trim()) : params.participants;
         if (participantsArray?.length) urlParams.set('participants', participantsArray.join(','));
         
-        const resourcesArray = params.resources && typeof params.resources === 'string' ? params.resources.split(',').map(r => r.trim()) : params.resources;
+        const resourcesArray = typeof params.resources === 'string' ? params.resources.split(',').map(r => r.trim()) : params.resources;
         if (resourcesArray?.length) urlParams.set('resources', resourcesArray.join(','));
 
         const endpoint = `/api/agents/tools/scheduling/availability?${urlParams}`;

@@ -13,7 +13,7 @@ export interface SalesOrderToolParams {
   
   // Create params
   customer_id?: string;
-  product_ids?: string[];
+  product_ids?: string[] | string;
   payment_method?: string;
   total_amount?: number;
   create_order?: boolean;

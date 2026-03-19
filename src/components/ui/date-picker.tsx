@@ -16,12 +16,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   placeholder = "Seleccionar fecha" 
 }) => {
   // Estado local para manejar el valor del input
-  const [mounted, setMounted] = useState(false);
-
-  // Solo renderizar después de montar para evitar problemas de hidratación
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   if (!mounted) {
     return null; // O un placeholder si lo prefieres

@@ -12,20 +12,24 @@ interface ApiResultsProps {
 
 const ApiResults: React.FC<ApiResultsProps> = ({ loading, error, apiResponse }) => {
   const [copied, setCopied] = useState(false);
+  const [prevResponse, setPrevResponse] = useState<any>(null);
   const [responseTime, setResponseTime] = useState<string | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
 
-  useEffect(() => {
+  if (apiResponse !== prevResponse) {
+    setPrevResponse(apiResponse);
     if (apiResponse) {
       // Simulamos un código de estado y tiempo de respuesta
       // En una implementación real, estos valores vendrían de la respuesta HTTP
       setStatusCode(200); // Ejemplo: 200 OK
-      setResponseTime(`${Math.floor(Math.random() * 500 + 100)}ms`); // Tiempo aleatorio entre 100-600ms
+      const timeStrLength = JSON.stringify(apiResponse).length;
+      const time = Math.min(Math.floor(timeStrLength / 10) + 100, 600);
+      setResponseTime(`${time}ms`); // Tiempo basado en el tamaño de la respuesta
     } else {
       setStatusCode(null);
       setResponseTime(null);
     }
-  }, [apiResponse]);
+  }
 
   const handleCopy = () => {
     if (!apiResponse) return;

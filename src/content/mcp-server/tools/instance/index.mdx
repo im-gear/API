@@ -20,7 +20,7 @@ IMPORTANT: You MUST call this tool with action "update" if the instance has a ge
 | activity | string | Required for create: The main activity or purpose of the new instance. |
 | name | string | Optional for update: Explicitly set a new name for the instance. |
 | context | string | Optional for update: Context about what the user is trying to accomplish for smart renaming. |
-| status | string | Optional for update: Set status. |
+| status | string | Optional for create and update: Set status (e.g. running, paused, stopped). On create defaults to "running". |
 | limit | number | Optional for read: Limit number of results. |
 | offset | number | Optional for read: Offset for pagination. |
 

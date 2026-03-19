@@ -76,7 +76,7 @@ export function salesTool(current_site_id?: string) {
 
         const body = {
           ...params,
-          product_ids: params.product_ids && typeof params.product_ids === 'string' ? params.product_ids.split(',').map(id => id.trim()) : params.product_ids,
+          product_ids: params.product_ids && typeof params.product_ids === 'string' ? (params.product_ids as string).split(',').map(id => id.trim()) : params.product_ids,
           shipping_address: params.shipping_address && typeof params.shipping_address === 'string' ? JSON.parse(params.shipping_address) : params.shipping_address,
           site_id: params.site_id || current_site_id,
         };
@@ -91,7 +91,7 @@ export function salesTool(current_site_id?: string) {
         }
         const body = {
           ...params,
-          product_ids: params.product_ids && typeof params.product_ids === 'string' ? params.product_ids.split(',').map(id => id.trim()) : params.product_ids,
+          product_ids: params.product_ids && typeof params.product_ids === 'string' ? (params.product_ids as string).split(',').map(id => id.trim()) : params.product_ids,
           shipping_address: params.shipping_address && typeof params.shipping_address === 'string' ? JSON.parse(params.shipping_address) : params.shipping_address,
           site_id: params.site_id || current_site_id,
         };

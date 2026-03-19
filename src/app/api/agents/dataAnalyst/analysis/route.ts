@@ -408,7 +408,6 @@ export async function POST(request: Request) {
     
     const sanitizedTools = rawTools.map(tool => {
       // Create a shallow copy and remove function properties
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { handler, execute, ...rest } = tool;
       return rest;
     });

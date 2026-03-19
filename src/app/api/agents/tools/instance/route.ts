@@ -51,7 +51,7 @@ export async function instanceCore(args: InstanceCoreArgs) {
       .insert({
         name: activity,
         instance_type: 'ubuntu',
-        status: 'running',
+        status: status ?? 'running',
         timeout_hours: 1,
         site_id: site_id,
         user_id: site.user_id,
@@ -222,6 +222,7 @@ export async function GET() {
     actions: {
       create: {
         required_fields: ['action', 'site_id', 'activity'],
+        optional_fields: ['status'],
         response: { success: 'boolean', instance: 'object' }
       },
       read: {

@@ -20,7 +20,7 @@ export interface CopywritingToolParams {
   target_audience?: string;
   use_case?: string;
   notes?: string;
-  tags?: string[];
+  tags?: string[] | string;
 
   // List params
   site_id?: string;

@@ -31,16 +31,18 @@ export default async function Page(props) {
     ? [] 
     : (paramsObj.mdxPath && paramsObj.mdxPath.length > 0 ? paramsObj.mdxPath : [])
   
+  let result;
   try {
-    const result = await importPage(mdxPath)
-    const { default: MDXContent, toc, metadata } = result
-    return (
-      <Wrapper toc={toc} metadata={metadata}>
-        <MDXContent {...props} params={paramsObj} />
-      </Wrapper>
-    )
+    result = await importPage(mdxPath)
   } catch (error) {
     // If import fails (e.g., for non-MDX routes like favicon.ico), return 404
     notFound()
   }
+
+  const { default: MDXContent, toc, metadata } = result;
+  return (
+    <Wrapper toc={toc} metadata={metadata}>
+      <MDXContent {...props} params={paramsObj} />
+    </Wrapper>
+  )
 } 

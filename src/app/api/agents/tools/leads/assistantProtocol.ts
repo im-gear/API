@@ -42,7 +42,7 @@ export interface LeadsToolParams {
   company_info?: Record<string, unknown>;
   interest_level?: string;
   product_interest?: string;
-  pages_visited?: string[];
+  pages_visited?: string[] | string;
   time_spent?: number;
   visit_count?: number;
 }
