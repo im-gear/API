@@ -144,6 +144,21 @@ export async function prepareAssistantContext(
       }
   }
 
+  // Fetch requirement_status context
+  const { data: requirementStatuses } = await supabaseAdmin
+    .from('requirement_status')
+    .select('*')
+    .eq('instance_id', instanceId)
+    .order('created_at', { ascending: false })
+    .limit(10);
+    
+  let requirementStatusContext = '';
+  if (requirementStatuses && requirementStatuses.length > 0) {
+    requirementStatusContext = '\n\n📋 REQUIREMENT STATUS CONTEXT:\n';
+    requirementStatusContext += JSON.stringify(requirementStatuses, null, 2);
+    requirementStatusContext += '\n\n💡 WHEN CHANGES ARE REQUESTED: If the user requests changes, you MUST use the requirements tool (action="update") to update the requirement instructions with the new requests and set its status to "in-progress". Then, use the requirement_status tool (action="create") to log that the requirement is back in progress.';
+  }
+
   // Generate prompts
   const agentBackground = await generateAgentBackground(siteId);
   const memoriesContext = await fetchMemoriesContext(siteId, userId, instanceId);
@@ -196,6 +211,7 @@ PLAN vs STEPS:
     whatsappInstruction,
     memoriesContext,
     historyContext,
+    requirementStatusContext,
     assetsContext,
     ICP_CATEGORY_IDS_INSTRUCTION,
     renameInstruction,

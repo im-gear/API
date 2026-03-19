@@ -13,6 +13,7 @@ export function requirementStatusTool(site_id: string, default_instance_id?: str
         requirement_id: { type: 'string', description: 'ID of the requirement' },
         repo_url: { type: 'string', description: 'URL of the related repository (optional)' },
         preview_url: { type: 'string', description: 'Live preview or staging URL of the related asset (optional)' },
+        source_code: { type: 'string', description: 'URL to a zip file containing the source code related to the requirement objective or preview (optional)' },
         status: { type: 'string', description: 'Progress status (e.g. in-progress, completed, failed) (required for create)' },
         message: { type: 'string', description: 'Message or detail of the progress' }
       },
@@ -25,6 +26,7 @@ export function requirementStatusTool(site_id: string, default_instance_id?: str
       requirement_id: string;
       repo_url?: string;
       preview_url?: string;
+      source_code?: string;
       status?: string;
       message?: string;
     }) => {

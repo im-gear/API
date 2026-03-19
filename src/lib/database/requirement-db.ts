@@ -81,6 +81,7 @@ export interface DbRequirementStatus {
   requirement_id: string;
   repo_url: string | null;
   preview_url: string | null;
+  source_code: string | null;
   status: string;
   message: string | null;
   created_at: string;
