@@ -109,6 +109,7 @@ interface RequirementItem {
   rationale: string;
   devices: string[];
   cron?: string;
+  cycle?: string;
   implementation?: {
     difficulty: string;
     estimated_time: string;
@@ -196,6 +197,7 @@ function prepareRequirementsAnalysisPrompt(params: z.infer<typeof RequestSchema>
     "rationale": "Justificación de por qué este requisito es importante para el segmento",
     "devices": ["mobile", "desktop", "tablet"],
     "cron": "Texto opcional para gestionar cada que se debe repetir (ej: 'cada semana')",
+    "cycle": "Ciclo de trabajo u origen (ej: 'Sprint 4')",
     ${include_implementation ? `"implementation": {
       "difficulty": "low|medium|high",
       "estimated_time": "Tiempo estimado (ej: 2-3 semanas)",

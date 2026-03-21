@@ -13,6 +13,7 @@ const CreateRequirementSchema = z.object({
   type: z.string().optional().default('task'),
   budget: z.number().optional(),
   cron: z.string().optional(),
+  cycle: z.string().optional(),
   site_id: z.string().uuid('Valid site_id required'),
   user_id: z.string().uuid('Valid user_id required').optional(),
   campaign_id: z.string().uuid().optional(),
@@ -55,6 +56,7 @@ export async function createRequirementCore(params: any) {
     user_id: effectiveUserId,
     campaign_id: validated.campaign_id,
     cron: validated.cron,
+    cycle: validated.cycle,
   });
 
   return {

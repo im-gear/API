@@ -15,6 +15,7 @@ const UpdateRequirementSchema = z.object({
   type: z.string().optional(),
   budget: z.number().optional(),
   cron: z.string().optional(),
+  cycle: z.string().optional(),
 });
 
 /**

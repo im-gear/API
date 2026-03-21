@@ -227,6 +227,7 @@ export async function updateRequirement(
   if (params.type !== undefined) updateData.type = params.type;
   if (params.budget !== undefined) updateData.budget = params.budget;
   if (params.cron !== undefined) updateData.cron = params.cron;
+  if (params.cycle !== undefined) updateData.cycle = params.cycle;
 
   const { data, error } = await supabaseAdmin
     .from('requirements')

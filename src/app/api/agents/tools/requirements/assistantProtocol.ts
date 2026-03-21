@@ -21,6 +21,7 @@ export interface RequirementsToolParams {
   type?: string;
   budget?: number;
   cron?: string;
+  cycle?: string;
   campaign_id?: string;
 
   // List params
@@ -57,6 +58,7 @@ export function requirementsTool(site_id: string, user_id?: string) {
         type: { type: 'string', description: 'Type of requirement (e.g., content, design, task, develop, analytics, etc.). Default: task' },
         budget: { type: 'number', description: 'Budget amount (numeric)' },
         cron: { type: 'string', description: 'Text to manage how often it should repeat' },
+        cycle: { type: 'string', description: 'Specify the source of the work cycle. Set this to ensure an entire development cycle is performed for the requirement (can be null or a new numeric or text value)' },
         campaign_id: { type: 'string', description: 'Campaign UUID to link requirement' },
         
         // List specific filters

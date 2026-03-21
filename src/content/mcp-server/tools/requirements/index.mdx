@@ -23,6 +23,7 @@ Manage requirements. Use action="create" to create a new requirement (requires t
 | type | string | Type of requirement (e.g., content, design, task, develop, analytics, etc.). Default: task |
 | budget | number | Budget amount (numeric) |
 | cron | string | Text to manage how often it should repeat |
+| cycle | string | Specify the source of the work cycle. Set this to ensure an entire development cycle is performed for the requirement (can be null or a new numeric or text value) |
 | campaign_id | string | Campaign UUID to link requirement |
 | site_id | string | Filter by site UUID |
 | user_id | string | Filter by user UUID |
@@ -53,7 +54,8 @@ Content-Type: application/json
   "priority": "high",
   "status": "backlog",
   "type": "develop",
-  "cron": "every monday"
+  "cron": "every monday",
+  "cycle": "Sprint 4"
 }
 ```
 
@@ -62,6 +64,6 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "requirement": { "id": "...", "title": "Build lead scoring model", "cron": "every monday" }
+  "requirement": { "id": "...", "title": "Build lead scoring model", "cron": "every monday", "cycle": "Sprint 4" }
 }
 ```
