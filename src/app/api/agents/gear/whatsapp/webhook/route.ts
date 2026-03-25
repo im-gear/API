@@ -112,19 +112,37 @@ export async function POST(request: NextRequest) {
                 const OpenAI = (await import('openai')).default;
                 const baseURL = process.env.VERCEL_AI_GATEWAY_OPENAI || (process.env.VERCEL_AI_GATEWAY ? `${process.env.VERCEL_AI_GATEWAY}/openai` : undefined);
                 const apiKey = process.env.VERCEL_AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY;
+                const directApiKey = process.env.OPENAI_API_KEY;
                 
                 if (apiKey) {
                   const openai = new OpenAI({ apiKey, baseURL });
+                  const directOpenai = new OpenAI({ apiKey: directApiKey });
                   const file = await OpenAI.toFile(Buffer.from(buffer), 'audio.ogg', { type: media.contentType });
                   
-                  const transcription = await openai.audio.transcriptions.create({
-                    file: file,
-                    model: 'whisper-1',
-                  });
-                  
-                  if (transcription && transcription.text) {
-                     console.log(`✅ Transcripción exitosa: "${transcription.text.substring(0, 50)}..."`);
-                     messageContent += `\n\n[Mensaje de voz transcrito]: "${transcription.text}"`;
+                  try {
+                    const transcription = await openai.audio.transcriptions.create({
+                      file: file,
+                      model: 'whisper-1',
+                    });
+                    
+                    if (transcription && transcription.text) {
+                       console.log(`✅ Transcripción exitosa: "${transcription.text.substring(0, 50)}..."`);
+                       messageContent += `\n\n[Mensaje de voz transcrito]: "${transcription.text}"`;
+                    }
+                  } catch (gatewayErr: any) {
+                     if (baseURL && gatewayErr.message && gatewayErr.message.includes('not found')) {
+                       console.log(`⚠️ AI Gateway no soporta audio/transcriptions. Intentando directo a OpenAI...`);
+                       const directTranscription = await directOpenai.audio.transcriptions.create({
+                         file: file,
+                         model: 'whisper-1',
+                       });
+                       if (directTranscription && directTranscription.text) {
+                          console.log(`✅ Transcripción directa exitosa: "${directTranscription.text.substring(0, 50)}..."`);
+                          messageContent += `\n\n[Mensaje de voz transcrito]: "${directTranscription.text}"`;
+                       }
+                     } else {
+                       throw gatewayErr;
+                     }
                   }
                 } else {
                   console.warn(`⚠️ No OpenAI API key available for transcription`);

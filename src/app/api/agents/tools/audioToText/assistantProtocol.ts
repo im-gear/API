@@ -101,16 +101,47 @@ export function audioToTextTool(site_id?: string) {
             if (!apiKey) throw new Error('No OpenAI or Vercel AI Gateway API key configured');
 
             const openai = new OpenAI({ apiKey, baseURL });
-            const file = await OpenAI.toFile(buffer, 'audio.mp3', { type: contentType });
+            // Necesitamos asegurarnos de que la extensión sea válida para Whisper.
+            // Whisper soporta: mp3, mp4, mpeg, mpga, m4a, wav, webm, ogg
+            let fileExt = 'mp3';
+            const contentTypeLower = contentType.toLowerCase();
+            if (contentTypeLower.includes('ogg')) fileExt = 'ogg';
+            else if (contentTypeLower.includes('wav')) fileExt = 'wav';
+            else if (contentTypeLower.includes('webm')) fileExt = 'webm';
+            else if (contentTypeLower.includes('mp4')) fileExt = 'mp4';
+            else if (contentTypeLower.includes('m4a')) fileExt = 'm4a';
+
+            // IMPORTANT: Vercel AI Gateway might not support the /audio/transcriptions endpoint directly
+            // or might have issues with the file upload format. We'll use the direct OpenAI API
+            // if we encounter the specific 404 error for the audio endpoint.
+            const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            const useClient = baseURL ? openai : directOpenai;
+
+            const file = await OpenAI.toFile(buffer, `audio.${fileExt}`, { type: contentType });
             
-            const transcription = await openai.audio.transcriptions.create({
-              file: file,
-              model: 'whisper-1',
-            });
-            
-            transcriptionText = transcription.text;
-            success = true;
-            console.log(`[AudioToTextTool] OpenAI Whisper transcription successful.`);
+            try {
+              const transcription = await useClient.audio.transcriptions.create({
+                file: file,
+                model: 'whisper-1',
+              });
+              transcriptionText = transcription.text;
+              success = true;
+              console.log(`[AudioToTextTool] OpenAI Whisper transcription successful.`);
+            } catch (err: any) {
+              // If we used the gateway and it failed with a 404 for the endpoint, retry directly with OpenAI
+              if (useClient !== directOpenai && err.message && err.message.includes('not found')) {
+                console.log(`[AudioToTextTool] Gateway failed with 404, retrying directly with OpenAI...`);
+                const directTranscription = await directOpenai.audio.transcriptions.create({
+                  file: file,
+                  model: 'whisper-1',
+                });
+                transcriptionText = directTranscription.text;
+                success = true;
+                console.log(`[AudioToTextTool] Direct OpenAI Whisper transcription successful.`);
+              } else {
+                throw err;
+              }
+            }
           } catch (err: any) {
             console.warn(`[AudioToTextTool] OpenAI failed: ${err.message}`);
             lastError = err;
