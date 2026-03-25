@@ -25,6 +25,7 @@ export default {
   configureWhatsApp: { title: withPost('Configure WhatsApp') },
   content: { title: withPost('Content') },
   conversations: { title: withGet('Conversations') },
+  createSecret: { title: withPost('Create Secret') },
   copywriting: { title: withPost('Copywriting') },
   createIcpMining: { title: withPost('Create ICP Mining') },
   deals: { title: withPost('Deals') },

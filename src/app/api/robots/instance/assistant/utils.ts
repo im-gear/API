@@ -48,6 +48,7 @@ import { systemNotificationTool } from '@/app/api/agents/tools/system_notificati
 import { requirementStatusTool } from '@/app/api/agents/tools/requirement_status/assistantProtocol';
 import { instanceLogsTool } from '@/app/api/agents/tools/instance_logs/assistantProtocol';
 import { audioToTextTool } from '@/app/api/agents/tools/audioToText/assistantProtocol';
+import { createSecretTool } from '@/app/api/agents/tools/createSecret/assistantProtocol';
 
 /**
  * Fetch relevant memories for assistant context (site_id, user_id, instance_id)
@@ -228,6 +229,7 @@ export const getAssistantTools = (
     instanceLogsTool(siteId, userId ?? '', instanceId),
     createProjectTool(userId ?? ''),
     audioToTextTool(siteId),
+    createSecretTool(siteId),
   ];
 
   if (agentType === 'gear') {
