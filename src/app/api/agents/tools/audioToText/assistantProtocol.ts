@@ -91,16 +91,25 @@ export function audioToTextTool(site_id?: string) {
           }
         }
 
-        // Fallback to OpenAI (via Vercel AI Gateway or direct)
+        // Fallback to OpenAI via Portkey
         if (!success) {
           try {
-            console.log(`[AudioToTextTool] Attempting transcription via OpenAI Whisper...`);
-            const baseURL = process.env.VERCEL_AI_GATEWAY_OPENAI || (process.env.VERCEL_AI_GATEWAY ? `${process.env.VERCEL_AI_GATEWAY}/openai` : undefined);
-            const apiKey = process.env.VERCEL_AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY;
+            console.log(`[AudioToTextTool] Attempting transcription via Portkey OpenAI Whisper...`);
             
-            if (!apiKey) throw new Error('No OpenAI or Vercel AI Gateway API key configured');
+            // Require Portkey dynamically to avoid unused imports
+            const { Portkey } = require('portkey-ai');
+            
+            const apiKey = process.env.PORTKEY_API_KEY;
+            const baseURL = 'https://api.portkey.ai/v1'; // Default Portkey URL
+            
+            if (!apiKey) throw new Error('No PORTKEY_API_KEY configured');
 
-            const openai = new OpenAI({ apiKey, baseURL });
+            const portkey = new Portkey({
+              apiKey,
+              baseURL,
+              provider: 'openai',
+            });
+            
             // Necesitamos asegurarnos de que la extensión sea válida para Whisper.
             // Whisper soporta: mp3, mp4, mpeg, mpga, m4a, wav, webm, ogg
             let fileExt = 'mp3';
@@ -111,39 +120,21 @@ export function audioToTextTool(site_id?: string) {
             else if (contentTypeLower.includes('mp4')) fileExt = 'mp4';
             else if (contentTypeLower.includes('m4a')) fileExt = 'm4a';
 
-            // IMPORTANT: Vercel AI Gateway might not support the /audio/transcriptions endpoint directly
-            // or might have issues with the file upload format. We'll use the direct OpenAI API
-            // if we encounter the specific 404 error for the audio endpoint.
-            const directOpenai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-            const useClient = baseURL ? openai : directOpenai;
-
             const file = await OpenAI.toFile(buffer, `audio.${fileExt}`, { type: contentType });
             
             try {
-              const transcription = await useClient.audio.transcriptions.create({
+              const transcription = await portkey.audio.transcriptions.create({
                 file: file,
                 model: 'whisper-1',
               });
               transcriptionText = transcription.text;
               success = true;
-              console.log(`[AudioToTextTool] OpenAI Whisper transcription successful.`);
+              console.log(`[AudioToTextTool] Portkey OpenAI Whisper transcription successful.`);
             } catch (err: any) {
-              // If we used the gateway and it failed with a 404 for the endpoint, retry directly with OpenAI
-              if (useClient !== directOpenai && err.message && err.message.includes('not found')) {
-                console.log(`[AudioToTextTool] Gateway failed with 404, retrying directly with OpenAI...`);
-                const directTranscription = await directOpenai.audio.transcriptions.create({
-                  file: file,
-                  model: 'whisper-1',
-                });
-                transcriptionText = directTranscription.text;
-                success = true;
-                console.log(`[AudioToTextTool] Direct OpenAI Whisper transcription successful.`);
-              } else {
-                throw err;
-              }
+               throw err;
             }
           } catch (err: any) {
-            console.warn(`[AudioToTextTool] OpenAI failed: ${err.message}`);
+            console.warn(`[AudioToTextTool] Portkey OpenAI failed: ${err.message}`);
             lastError = err;
           }
         }

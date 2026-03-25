@@ -216,51 +216,58 @@ export async function handleTwilioMediaAndCreateTask(params: {
         // Importación dinámica para no afectar otras partes si no se usa
         const OpenAI = (await import('openai')).default;
         
-        // El AI Gateway de Vercel puede no soportar /v1/audio/transcriptions (da 404),
-        // así que intentamos directo si falla.
-        const baseURL = process.env.VERCEL_AI_GATEWAY_OPENAI || (process.env.VERCEL_AI_GATEWAY ? `${process.env.VERCEL_AI_GATEWAY}/openai` : undefined);
-        const apiKey = process.env.VERCEL_AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY;
+        // Use Portkey integration instead of Vercel AI Gateway directly
+        const { Portkey } = require('portkey-ai');
+        
+        const portkeyApiKey = process.env.PORTKEY_API_KEY;
+        const baseURL = 'https://api.portkey.ai/v1'; // Default Portkey URL
         const directApiKey = process.env.OPENAI_API_KEY;
         
-        if (apiKey) {
-          const openai = new OpenAI({ apiKey, baseURL });
-          const directOpenai = new OpenAI({ apiKey: directApiKey });
-          
-          // Crear un file object a partir del buffer para OpenAI
-          // Whisper soporta mp3, mp4, mpeg, mpga, m4a, wav, y webm (y ogg si se especifica)
-          const fileContentType = item.contentType || dl.contentType || 'audio/ogg';
-          const fileName = `audio.${ext}`;
-          
-          const file = await OpenAI.toFile(Buffer.from(dl.buffer), fileName, { type: fileContentType });
-          
-          try {
-            const transcription = await openai.audio.transcriptions.create({
-              file: file,
-              model: 'whisper-1',
-            });
-            
-            if (transcription && transcription.text) {
-              transcriptionText = transcription.text;
-              log(`Transcription successful: "${transcriptionText.substring(0, 50)}..."`);
-            }
-          } catch (gatewayErr: any) {
-             // Si el error es 404 (el gateway no soporta audio), intentar directo
-             if (baseURL && gatewayErr.message && gatewayErr.message.includes('not found')) {
-               log(`Gateway failed with 404, retrying direct OpenAI...`);
-               const directTranscription = await directOpenai.audio.transcriptions.create({
-                 file: file,
-                 model: 'whisper-1',
-               });
-               if (directTranscription && directTranscription.text) {
-                  transcriptionText = directTranscription.text;
-                  log(`Direct Transcription successful: "${transcriptionText.substring(0, 50)}..."`);
-               }
-             } else {
-               throw gatewayErr;
-             }
-          }
-        } else {
-          warn(`No OpenAI API key for transcription`);
+        // Crear un file object a partir del buffer para OpenAI
+        // Whisper soporta mp3, mp4, mpeg, mpga, m4a, wav, y webm (y ogg si se especifica)
+        const fileContentType = item.contentType || dl.contentType || 'audio/ogg';
+        const fileName = `audio.${ext}`;
+        
+        const file = await OpenAI.toFile(Buffer.from(dl.buffer), fileName, { type: fileContentType });
+        
+        let success = false;
+        
+        if (portkeyApiKey) {
+           const portkey = new Portkey({
+             apiKey: portkeyApiKey,
+             baseURL: baseURL,
+             provider: 'openai',
+           });
+           
+           try {
+              const transcription = await portkey.audio.transcriptions.create({
+                file: file,
+                model: 'whisper-1',
+              });
+              
+              if (transcription && transcription.text) {
+                 transcriptionText = transcription.text;
+                 success = true;
+                 log(`Portkey Transcription successful: "${transcriptionText.substring(0, 50)}..."`);
+              }
+           } catch (portkeyErr: any) {
+              warn(`Portkey transcription failed: ${portkeyErr.message}, retrying direct OpenAI...`);
+           }
+        }
+        
+        // Fallback a OpenAI Directo si Portkey falla o no está configurado
+        if (!success && directApiKey) {
+           const directOpenai = new OpenAI({ apiKey: directApiKey });
+           const directTranscription = await directOpenai.audio.transcriptions.create({
+             file: file,
+             model: 'whisper-1',
+           });
+           if (directTranscription && directTranscription.text) {
+              transcriptionText = directTranscription.text;
+              log(`Direct Transcription successful: "${transcriptionText.substring(0, 50)}..."`);
+           }
+        } else if (!success) {
+           warn(`No API keys available for transcription`);
         }
       } catch (transcriptionErr: any) {
         warn(`Transcription failed: ${transcriptionErr.message}`);
