@@ -118,11 +118,17 @@ export function audioToTextTool(site_id?: string) {
             if (directApiKey && !success) {
                try {
                   console.log(`[AudioToTextTool] Attempting direct transcription via OpenAI Whisper...`);
-                  const directOpenai = new OpenAI({ apiKey: directApiKey });
-                  const transcription = await directOpenai.audio.transcriptions.create({
-                    file: file,
-                    model: 'whisper-1',
+                  const directOpenai = new OpenAI({ 
+                    apiKey: directApiKey,
+                    baseURL: 'https://api.openai.com/v1' // Forzar URL nativa de OpenAI
                   });
+                  
+                  const transcriptionOptions: any = {
+                    file: file,
+                    model: 'whisper-1' // Se debe mandar explicitamente 'whisper-1' a OpenAI para transcripciones
+                  };
+                  
+                  const transcription = await directOpenai.audio.transcriptions.create(transcriptionOptions);
                   if (transcription && transcription.text) {
                      transcriptionText = transcription.text;
                      success = true;
