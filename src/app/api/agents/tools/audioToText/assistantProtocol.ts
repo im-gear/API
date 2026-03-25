@@ -34,7 +34,25 @@ export function audioToTextTool(site_id?: string) {
           await CreditService.deductCredits(site_id, requiredCredits, 'audio_transcription', 'Audio transcription via AI', { audio_url: args.audio_url });
         }
 
-        const response = await fetch(args.audio_url);
+        const headers = new Headers();
+        
+        // Si la URL es de Twilio, necesitamos autenticarnos
+        if (args.audio_url.includes('api.twilio.com')) {
+           const accountSid = process.env.GEAR_TWILIO_ACCOUNT_SID;
+           const authToken = process.env.GEAR_TWILIO_AUTH_TOKEN;
+           if (accountSid && authToken) {
+              headers.set('Authorization', `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`);
+           }
+        }
+
+        let response = await fetch(args.audio_url, { headers, redirect: 'manual' });
+        
+        // Manejar la redirección de Twilio a S3
+        if (response.status >= 300 && response.status < 400 && response.headers.has('location')) {
+           const redirectUrl = response.headers.get('location')!;
+           response = await fetch(redirectUrl);
+        }
+
         if (!response.ok) {
           throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`);
         }

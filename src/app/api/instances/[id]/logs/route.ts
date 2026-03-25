@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/database/supabase-client';
+import { createInstanceLogCore } from '@/app/api/agents/tools/instance_logs/route';
 
 // ------------------------------------------------------------------------------------
 // GET /api/instances/[id]/logs
@@ -87,17 +88,31 @@ export async function POST(
 
     const payload = await request.json();
 
-    const { data: log, error } = await supabaseAdmin
-      .from('instance_logs')
-      .insert({ ...payload, instance_id: id })
-      .select()
-      .single();
+    // Verify instance exists and get site_id if not provided in payload
+    let site_id = payload.site_id;
+    if (!site_id) {
+      const { data: instance, error: instanceError } = await supabaseAdmin
+        .from('remote_instances')
+        .select('site_id')
+        .eq('id', id)
+        .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      if (instanceError || !instance) {
+        return NextResponse.json(
+          { error: 'Instancia no encontrada' },
+          { status: 404 }
+        );
+      }
+      site_id = instance.site_id;
     }
 
-    return NextResponse.json({ log, message: 'Log creado correctamente' }, { status: 201 });
+    const result = await createInstanceLogCore({
+      ...payload,
+      instance_id: id,
+      site_id
+    });
+
+    return NextResponse.json({ log: result.data, message: 'Log creado correctamente' }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -13,7 +13,7 @@ export function instanceLogsTool(site_id: string, user_id?: string, instance_id?
         log_type: { type: 'string', description: 'Type of log (e.g. system, user_action, agent_action) (required for create)' },
         level: { type: 'string', enum: ['info', 'warn', 'error'], description: 'Severity level (e.g. info, warn, error) (required for create)' },
         message: { type: 'string', description: 'Message or detail of the log (required for create)' },
-        details: { type: 'string', description: 'Additional context or metadata in JSON format (optional, as string)' },
+        details: { type: 'string', description: 'Additional context or metadata in JSON format (optional, as string). Pass a `usage` object (e.g. {"usage": {"prompt_tokens": 10, "completion_tokens": 5}}) to deduct credits.' },
         limit: { type: 'number', description: 'Maximum number of logs to return (optional, default 50)' },
         offset: { type: 'number', description: 'Offset for pagination (optional, default 0)' }
       }
