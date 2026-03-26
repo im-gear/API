@@ -12,7 +12,6 @@ const GetRequirementsSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const includeCompleted = searchParams.get('include_completed') === 'true';
     const filters = {
       site_id: searchParams.get('site_id') || undefined,
       user_id: searchParams.get('user_id') || undefined,
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
     const { requirements, total, hasMore } = await getRequirements({
       ...validatedFilters,
       excluded_statuses: ['validated'],
-      excluded_completion_statuses: includeCompleted ? undefined : ['completed'],
+      excluded_completion_statuses: ['completed'],
     });
 
     return NextResponse.json({
