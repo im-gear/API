@@ -10,8 +10,13 @@ export async function createInstanceLogCore(params: {
   level: string;
   message: string;
   details?: Record<string, any>;
+  tool_name?: string;
+  tool_call_id?: string;
+  tool_args?: any;
+  tool_result?: any;
+  is_error?: boolean;
 }) {
-  const { site_id, instance_id, user_id, log_type, level, message, details } = params;
+  const { site_id, instance_id, user_id, log_type, level, message, details, tool_name, tool_call_id, tool_args, tool_result, is_error } = params;
 
   if (!site_id || !log_type || !level || !message) {
     throw new Error('site_id, log_type, level, and message are required');
@@ -62,6 +67,11 @@ export async function createInstanceLogCore(params: {
         level,
         message,
         details: details || null,
+        tool_name: tool_name || null,
+        tool_call_id: tool_call_id || null,
+        tool_args: tool_args || null,
+        tool_result: tool_result || null,
+        is_error: is_error || false,
         created_at: new Date().toISOString(),
       }
     ])
